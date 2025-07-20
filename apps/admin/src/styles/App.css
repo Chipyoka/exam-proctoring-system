@@ -1,0 +1,53 @@
+
+:root{
+  --black:#434343;
+  --white:#f1f1f1;
+  --white01:#fafafa;
+  --green:#00be16;
+  --yellowshade:rgba(218, 155, 18, 0.05);
+  --greenshade:rgba(0, 190, 22, 0.05);
+  --blueshade:rgba(52, 18, 218, 0.05);
+  --darkgray:#a6a6a6;
+  --red:#da1912;
+  --primary:#0b445f;
+  --primary-hover:#09374c;
+}
+
+
+
+#root {
+  max-width: 1480px;
+  margin: 0 auto;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--white);
+  padding: 0.95rem 1.75rem;
+  transition: background-color 0.3s ease;
+  text-transform: uppercase;
+  border: 2px solid var(--primary);
+  cursor: pointer;
+}
+.btn-primary:hover{
+  background-color: var(--primary-hover);
+}
+
+.bg-primary {
+  background-color: var(--primary);
+}
+
+.hyperlink{
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+}
+.hyperlink:hover{
+ text-decoration: underline;
+}
+
+.no-select {
+  user-select: none;
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none;     /* IE 10+ */
+}
