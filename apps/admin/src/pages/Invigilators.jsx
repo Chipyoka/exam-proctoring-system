@@ -1,14 +1,9 @@
-
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 
-const Dashboard = () => {
-
-
-
-
-  return (
-    <>
+const Invigilators = () => {
+    return(
+           <>
         <div className="w-full flex items-start text-gray-400">
             <Sidebar/>
         
@@ -18,7 +13,7 @@ const Dashboard = () => {
             </div>
         </div>
     </>
-  );
-};
+    )
+}
 
-export default Dashboard;
+export default Invigilators;

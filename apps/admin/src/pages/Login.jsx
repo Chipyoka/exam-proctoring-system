@@ -86,7 +86,7 @@ const [email, setEmail] = useState('');
 
 
   return (
-    <div className="text-gray-500 flex flex-col items-center justify-center w-full max-w-full h-screen bg-[url('../assets/classroom-bg-min.png')] bg-no-repeat bg-cover bg-center">
+    <div className="text-gray-500 flex flex-col items-center justify-center w-full max-w-full h-screen bg-[url('../assets/classroom-bg-min.webp')] bg-no-repeat bg-cover bg-center">
       <div className="absolute inset-0 bg-black/40  z-0"></div>
 
       <div className="bg-white shadow-lg z-10 md:w-md w-sm">
