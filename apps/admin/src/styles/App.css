@@ -20,6 +20,37 @@
   margin: 0 auto;
 }
 
+
+/* For Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  width: 4px;     /* Thin vertical scrollbar */
+  height: 6px;    /* Thin horizontal scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; /* or a light gray like #f0f0f0 */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #b4b4b4;     /* Scrollbar color */
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #a4a4a4;
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;            /* 'auto' | 'thin' | 'none' */
+  scrollbar-color: #b4b4b4 transparent; /* thumb | track */
+}
+
+
+
+
 .btn-primary {
   background-color: var(--primary);
   color: var(--white);
@@ -33,6 +64,9 @@
   background-color: var(--primary-hover);
 }
 
+.text-primary{
+  color: var(--primary) !important;
+}
 .bg-primary {
   background-color: var(--primary);
 }
