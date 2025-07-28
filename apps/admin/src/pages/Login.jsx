@@ -3,6 +3,7 @@ import {useState, useEffect} from 'react';
 import useAuthStore from '../store/authStore';
 
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { getIdTokenResult } from 'firebase/auth';
 import { auth } from '../../../../shared/firebase';
 
 
@@ -44,45 +45,49 @@ const [email, setEmail] = useState('');
   }
 
 //  handle login
-   const handleLogin = async (e) => {
-    e.preventDefault();
-    setMessage({});
-    //validate inputs
-    if(!email || !password){
-         setMessage({
-            type: 'error',
-            text: 'All fields are reguired'
-        })
+const handleLogin = async (e) => {
+  e.preventDefault();
+  setMessage({});
 
-        return
+  if (!email || !password) {
+    setMessage({ type: 'error', text: 'All fields are required' });
+    return;
+  }
+
+  if (password.length < 8) {
+    setMessage({ type: 'error', text: 'Password must be longer than 8 characters' });
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // 👇 Fetch custom claims
+    const idTokenResult = await getIdTokenResult(user);
+    const role = idTokenResult.claims.role;
+
+    // 👇 Check if role matches the app (change as needed)
+
+    if (role !== 'admin'){
+      navigate("/admin/unauthorised");
+      return;
     }
 
-    // validate password
-    if(password.length < 8){
-        setMessage({
-            type: 'error',
-            text: 'Password must be longer than 8 characters'
-        })
-        return
-    }
+    // 🔓 Proceed to app
+    login(user); // set user context
+    navigate('/'); // or dashboard route
+  } catch (err) {
+    console.error(err.message);
+    setMessage({ type: 'error', text: 'Invalid credentials. Please try again.' });
+  } finally {
+    setLoading(false);
+  }
+};
 
-    //after validation, setloading
-    setLoading(true);
-
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      login(userCredential.user);
-      navigate('/'); // or /dashboard
-    } catch (err) {
-      console.error(err.message);
-      setMessage({
-        type: 'error',
-        text: 'Invalid credentials. Please try again.'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+ document.title = "EPS - Exam Proctoring System";
 
 
   return (

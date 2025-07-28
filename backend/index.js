@@ -30,6 +30,29 @@ app.post('/setRole', async (req, res) => {
   }
 });
 
+// Endpoint to get user role by UID
+app.get('/user-role/:uid', async (req, res) => {
+  const { uid } = req.params;
+
+  try {
+    const user = await admin.auth().getUser(uid);
+    const customClaims = user.customClaims || {};
+
+    if (!customClaims.role) {
+      return res.status(404).json({ error: 'Role not set for this user.' });
+    }
+
+    return res.json({ uid, role: customClaims.role });
+  } catch (error) {
+    console.error('Error fetching user data:', error.message);
+    return res.status(500).json({ error: 'Failed to fetch user role.' });
+  }
+});
+
+
+
+
+
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`🚀 Role management server running on http://localhost:${PORT}`);

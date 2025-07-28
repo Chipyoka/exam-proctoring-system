@@ -6,6 +6,7 @@ import Students from './pages/Students';
 import Invigilators from './pages/Invigilators';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
+import NotAuthorised from './pages/NotAuthorised';
 
 
 import './styles/App.css'; // Ensure styles are imported
@@ -20,6 +21,8 @@ function App() {
 
         {/* Not found URLs - 404 */}
         <Route path="/*" element={<NotFound />} />
+
+         <Route path="/admin/unauthorised" element={<NotAuthorised />} />
 
 
         {/* Protected Routes */}

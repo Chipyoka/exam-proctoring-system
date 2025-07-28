@@ -20,6 +20,9 @@
   margin: 0 auto;
 }
 
+button{
+  cursor: pointer;
+}
 
 /* For Chrome, Edge, Safari */
 ::-webkit-scrollbar {
