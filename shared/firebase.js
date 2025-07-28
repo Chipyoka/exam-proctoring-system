@@ -1,6 +1,7 @@
 // shared/firebase.js
 import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
+import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyB3iA9M5PUPVjyQYfSUlCFEI5ahPbnwVak",
@@ -12,5 +13,10 @@ const firebaseConfig = {
   appId: "1:633499193553:web:d2af8d7bc0cd4f9a90f5f0"
 };
 
+
 const app = initializeApp(firebaseConfig);
-export const db = getDatabase(app); // Make sure this is exported
+const auth = getAuth(app);
+const db = getDatabase(app); 
+
+
+export { auth, db }; // Make sure this is exported

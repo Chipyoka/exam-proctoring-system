@@ -5,6 +5,7 @@ import useAuthStore from '../store/authStore';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import Logo from '../assets/eps-white.png'; 
+import { LogOut } from 'lucide-react';
 
 const navItems = [
   { label: 'Dashboard', path: '/' },
@@ -72,7 +73,7 @@ const handleLogout = () => {
 
                     <div className="flex justify-center items-center gap-x-2">
                     <p>Logout</p>
-                    {/* <ArrowRight className="w-5 h-5 text-gray-50" /> */}
+                    <LogOut className="w-5 h-5 text-gray-50" />
                     </div>
                 </button>
       </div>
