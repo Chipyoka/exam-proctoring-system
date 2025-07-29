@@ -24,6 +24,10 @@ button{
   cursor: pointer;
 }
 
+h4{
+  font-weight: 600 !important;
+}
+
 /* For Chrome, Edge, Safari */
 ::-webkit-scrollbar {
   width: 4px;     /* Thin vertical scrollbar */
@@ -67,6 +71,20 @@ button{
   background-color: var(--primary-hover);
 }
 
+.btn-primary-sm {
+  background-color: var(--primary);
+  color: var(--white);
+  padding: 0.5rem 1.25rem;
+  transition: background-color 0.3s ease;
+  text-transform: uppercase;
+  border: 2px solid var(--primary);
+  cursor: pointer;
+  font-size: .7rem;
+}
+.btn-primary-sm:hover{
+  background-color: var(--primary-hover);
+}
+
 .text-primary{
   color: var(--primary) !important;
 }
@@ -87,4 +105,22 @@ button{
   user-select: none;
   -webkit-user-select: none; /* Safari */
   -ms-user-select: none;     /* IE 10+ */
+}
+
+
+/* Include this in your global stylesheet or component module */
+.wiggle {
+  transition: transform 0.15s ease-in-out;
+}
+
+.wiggle:hover {
+  animation: wiggle-icon 0.3s ease-in-out;
+}
+
+@keyframes wiggle-icon {
+  0%   { transform: rotate(0deg); }
+  25%  { transform: rotate(-10deg); }
+  50%  { transform: rotate(10deg); }
+  75%  { transform: rotate(-5deg); }
+  100% { transform: rotate(0deg); }
 }

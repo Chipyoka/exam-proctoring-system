@@ -111,7 +111,7 @@ const handleRoomCardClick = (sessionId) => {
   };
 
   return (
-    <div className="overflow-hidden border border-red-600 h-full w-full max-w-full bg-gray-100 py-2 px-4">
+    <div className="overflow-hidden h-full w-full max-w-full bg-gray-100 py-2 px-4">
       <p>Academic Period</p>
       <div className="bg-white input-group relative flex items-center border border-gray-300 px-3 py-2">
         <select

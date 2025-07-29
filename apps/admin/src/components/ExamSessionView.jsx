@@ -3,6 +3,8 @@ import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firesto
 import { firestore } from '../../../../shared/firebase';
 import useExamSessionStore from '../store/useRoomStore';
 
+import { PlusCircle } from 'lucide-react';
+
 const ExamSessionView = () => {
   const { selectedExamSessionId, clearSelectedExamSessionId } = useExamSessionStore();
   const [sessionData, setSessionData] = useState(null);
@@ -53,20 +55,33 @@ const ExamSessionView = () => {
         return `${diffHours}h ${diffMinutes}mins`;
         }
 
-        // Helper function to parse '09:00 AM' into a Date
-        function parseTimeString(timeStr, refDate) {
-        const [time, period] = timeStr.split(' ');
-        let [hours, minutes] = time.split(':').map(Number);
+    // Helper function to parse '09:00 AM' into a Date
+    function parseTimeString(timeStr, refDate) {
+    const [time, period] = timeStr.split(' ');
+    let [hours, minutes] = time.split(':').map(Number);
 
-        // Convert 12-hour to 24-hour format
-        if (period === 'PM' && hours !== 12) hours += 12;
-        if (period === 'AM' && hours === 12) hours = 0;
+    // Convert 12-hour to 24-hour format
+    if (period === 'PM' && hours !== 12) hours += 12;
+    if (period === 'AM' && hours === 12) hours = 0;
 
-        // Create a new Date using reference date (but override time)
-        const date = new Date(refDate);
-        date.setHours(hours, minutes, 0, 0);
-        return date;
-        }
+    // Create a new Date using reference date (but override time)
+    const date = new Date(refDate);
+    date.setHours(hours, minutes, 0, 0);
+    return date;
+    }
+
+    /**
+     * Get user initials from first and last names
+     * @param firstname the first name
+     * @param lastname the lastname
+     * @return an initial fl
+     */
+    function getInitials(firstName, lastName) {
+        const first = (firstName || '').trim()[0]?.toUpperCase() ?? '';
+        const last = (lastName || '').trim()[0]?.toUpperCase() ?? '';
+        return `${first}${last}`;
+    }
+
 
 
   useEffect(() => {
@@ -240,77 +255,153 @@ const ExamSessionView = () => {
   }
   // Main render with your schema data
   return (
-    <div className="capitalize p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
-      <div className="flex justify-between items-start mb-4">
-        <h2 className="text-xl font-bold text-gray-800">
-          {sessionData?.room?.name || 'Unknown Room'} - Exam Details
-        </h2>
-        <button onClick={clearSelectedExamSessionId}>×</button>
-      </div>
+    <div className="h-full capitalize p-4 bg-white">
+        {/* top row */}
+        <div className="w-full flex justify-between items-center">
+              {/* Academic Period */}
+                {sessionData?.academicPeriod && (
+                    <div className="">
+                    <p className="text-sm text-gray-500">Academic Period</p>
+                    <h4 className="text-lg text-gray-500 ">{sessionData.academicPeriod.name}</h4>
+                    </div>
+                )}
+          
 
-      {/* Academic Period */}
-      {sessionData?.academicPeriod && (
-        <div className="mb-4">
-          <p className="text-sm text-gray-500">Academic Period</p>
-          <p className="font-medium">{sessionData.academicPeriod.name}</p>
-        </div>
-      )}
-
-      {/* Date and Time */}
-      <div className="grid grid-cols-4 gap-4 mb-4">
-        <div>
-          <p className="text-sm text-gray-500">Date</p>
-          <p className="font-medium">{sessionData?.date}</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">Start Time</p>
-          <p className="font-medium">{sessionData?.startTime}</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">End Time</p>
-          <p className="font-medium">{sessionData?.endTime}</p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">Duration</p>
-          <p className="font-medium">{getDuration(sessionData?.startTime, sessionData?.endTime)}</p>
-        </div>
-      </div>
-
-      {/* Courses Section */}
-      <div className="mb-4">
-        <p className="text-sm text-gray-500 mb-2">Courses ({sessionData?.courses?.length || 0})</p>
-        <div className="flex flex-wrap gap-2">
-          {sessionData?.courses?.map(course => (
-            <span key={course.id} className="badge">
-              {course.id} - {course.name}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Students Section */}
-      <div className="mb-4">
-        <p className="text-sm text-gray-500 mb-2">Students ({sessionData?.students?.length || 0})</p>
-        <div className="space-y-2">
-          {sessionData?.students?.map(student => (
-            <div key={student.id} className="student-card">
-              {student.id} - {student.firstname} {student.lastname} - {student.isVerified ? 'verified' : 'not verified'}
+            {/* buttons for creating exam sessions, and adding rooms or academic periods*/}
+            <div className="flex items-center justify-end gap-4">
+                <button className="btn-primary-sm flex justify-center items-center gap-2" title="Add new room">
+                    <PlusCircle className="w-4 h-4 " />
+                    room
+                </button>
+                <button className="btn-primary-sm flex justify-center items-center gap-2" title="Register new academic period">
+                    <PlusCircle className="w-4 h-4 " />
+                    Academic Period
+                </button>
+                <button className="btn-primary-sm flex justify-center items-center gap-2" title="Add new exam session">
+                    <PlusCircle className="w-4 h-4 " />
+                    exam session
+                </button>
             </div>
-          ))}
         </div>
-      </div>
 
-      {/* Invigilators Section */}
-      {sessionData?.invigilators?.length > 0 && (
-        <div>
-          <p className="text-sm text-gray-500 mb-2">Invigilators ({sessionData?.invigilators?.length || 0})</p>
-          <ul>
-            {sessionData.invigilators.map(inv => (
-              <li key={inv.id}>{inv.firstname} {inv.lastname} - {inv.phone}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+       <div className="overflow-y-auto h-[94%] p-2">
+            {/* Exam sessions details card */}
+            <div className="bg-gray-50 border border-gray-200 w-full max-w-full mt-4 px-4 py-2">
+            <div className="flex justify-between items-center">
+                <div>
+                    {/* room numbers */}
+                    <h4 className="text-2xl text-primary uppercase"> {sessionData?.room?.name || 'Unknown Room'}</h4>
+                    <p>Capacity: <span className="font-semibold text-gray-500">{sessionData?.room?.capacity || '0'}</span> </p>
+                </div>
+
+                {/* Exam session status */}
+                <div className="bg-white p-2" title="Exam Session Status">
+                    <div className={`
+                    font-medium flex justify-center items-center 
+                    w-[8rem] max-w-[8rem] py-6 px-2 capitalize
+                    ${
+                        sessionData?.status === 'active' || sessionData?.status === 'in progress' 
+                        ? 'bg-green-100 text-green-600'  // Green for success/completed
+                        : sessionData?.status === 'pending'
+                            ? 'bg-gray-100 text-gray-600'  // Gray for pending
+                            : 'bg-yellow-100 text-yellow-600' // Yellow for unknown/others
+                    }
+                    `}>
+                    {sessionData?.status}
+                    </div>
+                </div>
+            </div>
+
+                
+                {/* session times and status */}
+                <div className="flex items-center justify-between gap-4 my-2 border-y border-gray-300 py-4">
+                    <div>
+                        <p className="text-sm text-gray-500">Date</p>
+                        <p className="font-medium">{sessionData?.date}</p>
+                    </div>
+                    <div>
+                        <p className="text-sm text-gray-500">Start Time</p>
+                        <p className="font-medium">{sessionData?.startTime}</p>
+                    </div>
+                    <div>
+                        <p className="text-sm text-gray-500">End Time</p>
+                        <p className="font-medium">{sessionData?.endTime}</p>
+                    </div>
+                    <div>
+                        <p className="text-sm text-gray-500">Duration</p>
+                        <p className="font-medium">{getDuration(sessionData?.startTime, sessionData?.endTime)}</p>
+                    </div>
+                
+                </div>
+
+                {/* Courses and Invigilatoes */}
+                <div className="flex justify-between items-center">
+                    {/* Courses Section */}
+                    <div>
+                        <div className="mb-4">
+                            <p className="text-sm text-gray-500 mb-2">Courses ({sessionData?.courses?.length || 0})</p>
+                            <div className="flex flex-wrap gap-2">
+                            {sessionData?.courses?.map(course => (
+                                <span key={course.id} className="badge">
+                                {course.id} - {course.name}
+                                </span>
+                            ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Invigilators Section */}
+                    <div>
+                        {sessionData?.invigilators?.length > 0 && (
+                            <div>
+                            <p className="text-sm text-gray-500 mb-2">Invigilators ({sessionData?.invigilators?.length || 0})</p>
+                            <ul>
+                                {sessionData.invigilators.map(inv => (
+                                <li key={inv.id}>{inv.firstname} {inv.lastname} - {inv.phone}</li>
+                                ))}
+                            </ul>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+        {/* Students Section */}
+            <div>
+                <p className="text-sm my-2">List of scanned students <span>({sessionData?.students?.length || 0})</span></p>
+            </div>
+    
+            {/* Student list */}
+            <div className="mb-4">
+                <div className="flex justify-start items-center gap-4">
+                {sessionData?.students?.map(student => (
+                    <div key={student.id} className="student-card p-2 w-[10em] bg-gray-100 border border-gray-300 flex flex-col justify-center items-center">
+                        {/* Update to use registered/stored image of student */}
+                        <div className="rounded-full w-20 h-20 overflow-hidden">
+                            <img src={`https://placehold.co/500x500/0b445f/FFF?text=${getInitials(student.firstname,student.lastname)}`} alt={student.firstname} />
+                        </div>
+                        <div className="text-center my-2">
+                            <p className="text-md text-gray-500 font-bold"> {student.id}</p>
+                            <p>{student.firstname} {student.lastname}</p>
+                            <p>{student.program} - Year {student.studyYear}</p>
+                            <p className={`
+                                font-medium p-2 border border-gray-300 uppercase w-full
+                                ${
+                                    student.isVerified 
+                                    ? 'bg-green-100 text-green-600'  // Green for success/completed
+                                    : 'bg-gray-100 text-gray-600'  // Gray for pending
+                                    
+                                }
+                                `}>{student.isVerified ? 'verified' : 'not verified'}</p>
+                        </div>
+                    
+                    </div>
+                ))}
+                </div>
+            </div>
+       </div>
+
+   
     </div>
   );
 };
