@@ -1,85 +1,161 @@
-import {useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { firestore } from '../../../../shared/firebase';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 
 const RoomsSidebar = () => {
+  const [examSessions, setExamSessions] = useState([]);
+  const [filteredSessions, setFilteredSessions] = useState([]);
+  const [selectedPeriod, setSelectedPeriod] = useState('All');
+  const [listIndicator, setListIndicator] = useState('');
+  const [periods, setPeriods] = useState(['All']);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-     // sample room
+  // Safe data fetcher
+ const fetchSessionData = async (sessionDoc) => {
+  try {
+    const sessionData = sessionDoc.data();
+    if (!sessionData) return null;
 
-    const sampleRoom = [
-        { id : 1, name : 'ROOM 101', capacity : '120', status: 'active', period : 'jan-25',},
-        { id : 2, name : 'ROOM 105', capacity : '110', status: null, period : 'jan-25',},
-        { id : 3, name : 'ROOM 103', capacity : null, status: 'pending', period : 'jun-24',},
-        { id : 4, name : 'ROOM 108', capacity : null, status: 'pending', period : 'jan-24',},
-        { id : 5, name : 'ROOM 106', capacity : null, status: 'pending', period : 'jan-24',},
-        { id : 6, name : 'ROOM 96', capacity : null, status: 'pending', period : 'jan-25',},
-    ]
+    // Get the ID from DocumentReference objects
+    const roomId = sessionData.room?.id || '';
+    const periodId = sessionData.academicPeriod?.id || '';
 
-    const [listIndicator, setListIndicator] = useState(" ");
-    const [rooms, setRooms] = useState(sampleRoom);
+    const [roomSnap, periodSnap] = await Promise.all([
+      getDoc(doc(firestore, 'rooms', roomId)),
+      getDoc(doc(firestore, 'academicPeriod', periodId))
+    ]);
 
-     const [selectedPeriod, setSelectedPeriod] = useState('jan-25');
+    return {
+      id: sessionDoc.id,
+      status: sessionData.status || 'pending',
+      date: sessionData.date || '-',
+      periodName: periodSnap.exists() ? periodSnap.data().name : 'unknown',
+      room: {
+        name: roomSnap.exists() ? roomSnap.data().name : 'unknown',
+        capacity: roomSnap.exists() ? roomSnap.data().capacity : 0
+      }
+    };
+  } catch (err) {
+    console.error('Error processing session:', err);
+    return null;
+  }
+};
 
-  const periods = ['All', ...new Set(rooms.map(item => item.period))];
-  const filteredRooms =
-    selectedPeriod === 'All'
-      ? rooms
-      : rooms.filter(room => room.period === selectedPeriod);
-   
+  // Fetch examSessions from Firestore
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const sessionsSnapshot = await getDocs(collection(firestore, 'examSessions'));
+        const sessions = [];
 
-    useEffect(() => {
-        console.log("Rooms", rooms);
+        console.log ("sessions", sessions);
 
-
-         // handle indicator
-        if(filteredRooms.length < 1){
-            setListIndicator("No Rooms to show");
-        }else if (filteredRooms.length > 4){
-            setListIndicator("- End of list -")
-        }else{
-            setListIndicator(" ")
+        for (const sessionDoc of sessionsSnapshot.docs) {
+          const session = await fetchSessionData(sessionDoc);
+          if (session) sessions.push(session);
         }
-    }, [rooms]);
 
+        setExamSessions(sessions);
+        setPeriods(['All', ...new Set(sessions.map(s => s.periodName).filter(Boolean))]);
+        setError(null);
+      } catch (err) {
+        console.error('Fetch error:', err);
+        setError('Failed to load sessions');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    return(
-        <div className="overflow-hidden border border-red-600 h-full w-full max-w-full bg-gray-100 py-2 px-4">
-            <p>Academic Period</p>
-            <div className="bg-white input-group relative flex items-center border border-gray-300 px-3 py-2 transition-colors duration-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
-                <select 
-                    value={selectedPeriod}
-                    onChange={(e) => setSelectedPeriod(e.target.value)}
-                    name="semester" 
-                    className="text-[#2F7392] ml-2 w-full border-none outline-none bg-transparent focus:ring-0 focus:outline-none placeholder:text-sm"
-                >
-                    <option value="jan-25">Day S1 2025 (JAN)</option>
-                    <option value="jun-24">Day S2 2024 (JUN)</option>
-                    <option value="jan-24">Day S1 2024 (JAN)</option>
-            
-                </select>
+    fetchData();
+  }, []);
+
+  // Filter sessions safely
+  useEffect(() => {
+    try {
+      const filtered = selectedPeriod === 'All'
+        ? [...examSessions]
+        : examSessions.filter(s => String(s.periodName) === String(selectedPeriod));
+
+      setFilteredSessions(filtered);
+
+      if (filtered.length === 0) {
+        setListIndicator('No Sessions to show');
+      } else if (filtered.length > 4) {
+        setListIndicator('- End of list -');
+      } else {
+        setListIndicator('');
+      }
+    } catch (err) {
+      console.error('Filter error:', err);
+      setFilteredSessions([]);
+      setListIndicator('Error filtering sessions');
+    }
+  }, [examSessions, selectedPeriod]);
+
+  if (isLoading) return <div className="p-4 text-center">Loading sessions...</div>;
+  if (error) return <div className="p-4 text-red-500">{error}</div>;
+
+  return (
+    <div className="overflow-hidden border border-red-600 h-full w-full max-w-full bg-gray-100 py-2 px-4">
+      <p>Academic Period</p>
+      <div className="bg-white input-group relative flex items-center border border-gray-300 px-3 py-2">
+        <select
+          value={selectedPeriod}
+          onChange={(e) => setSelectedPeriod(String(e.target.value))}
+          className="text-[#2F7392] ml-2 w-full border-none outline-none bg-transparent"
+        >
+          {periods.map(period => (
+            <option key={String(period)} value={String(period)}>
+              {period}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <p className="text-xs my-3">List of exam sessions</p>
+      <div className="mb-2 pt-4 pb-12 px-2 h-[90%] overflow-y-auto">
+        {filteredSessions.map((session) => (
+          <div 
+            key={`session-${session.id}`}
+            className="mb-4 bg-white p-4 flex items-center justify-between gap-2 cursor-pointer hover:shadow-sm"
+          >
+            <div>
+              <p className="text-lg font-semibold text-gray-600 uppercase">
+                {session.room.name}
+              </p>
+              <p className="text-sm">
+                Capacity: <span className="font-semibold text-gray-500">{session.room.capacity}</span>
+              </p>
+              <p className="text-sm">
+                Date: <span className="text-gray-500 capitalize">{session.date}</span>
+              </p>
             </div>
-
-            {/* list of all added rooms */}
-            <p className="text-xs my-3">List of exam rooms</p>
-            <div className=" mb-2 pt-4 pb-12 px-2  h-[90%] overflow-y-auto">
-            {
-                filteredRooms.map((room) => (
-                    <div key={room.id} className="mb-4 bg-white p-4 flex items-center justify-between gap-2 cursor-pointer hover:shadow-sm">
-                        <div >
-                            <p className="text-lg font-semibold text-gray-600 uppercase">{room?.name ?? 'Unknown'}</p>
-                            <p className="text-sm">Capacity: <span className="font-semibold text-gray-500">{room?.capacity ?? '-'}</span></p>
-                        </div>
-                        <div className="bg-green-50 text-green-600 font-medium flex justify-center items-center w-[6rem] max-w-[6rem] py-6 px-2 capitalize"> {room?.status ?? 'unknown'}</div>
-                    </div>
-                ))
-            }
-               
-
-                {/* Indicator of end of list  */}
-                <div className=" text-sm text-center">
-                     {listIndicator}
+                <div className={`
+                font-medium flex justify-center items-center 
+                w-[6rem] max-w-[6rem] py-6 px-2 capitalize
+                ${
+                    session.status === 'active' || session.status === 'in progress' 
+                    ? 'bg-green-50 text-green-600'  // Green for success/completed
+                    : session.status === 'pending'
+                        ? 'bg-gray-50 text-gray-600'  // Gray for pending
+                        : 'bg-yellow-50 text-yellow-600' // Yellow for unknown/others
+                }
+                `}>
+                {session.status}
                 </div>
-            </div>
-        </div>
-    )
-}
+          </div>
+        ))}
+
+        {listIndicator && (
+          <div className="text-sm text-center">
+            {listIndicator}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export default RoomsSidebar;
