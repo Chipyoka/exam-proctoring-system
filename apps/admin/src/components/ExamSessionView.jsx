@@ -4,6 +4,7 @@ import { firestore } from '../../../../shared/firebase';
 import useExamSessionStore from '../store/useRoomStore';
 
 import { PlusCircle } from 'lucide-react';
+import StudentCard from './StudentCard';
 
 const ExamSessionView = () => {
   const { selectedExamSessionId, clearSelectedExamSessionId } = useExamSessionStore();
@@ -271,14 +272,14 @@ const ExamSessionView = () => {
             {/* buttons for creating exam sessions, and adding rooms or academic periods*/}
             <div className="flex items-center justify-end gap-4">
                 <button 
-                    className="btn-primary-sm flex justify-center items-center gap-2 " 
+                    className="btn-primary-outlined-sm flex justify-center items-center gap-2 " 
                     title="Add new room"
                 >
                     <PlusCircle className="w-4 h-4 " />
                     room
                 </button>
                 <button 
-                    className="btn-primary-sm flex justify-center items-center gap-2" 
+                    className="btn-primary-outlined-sm flex justify-center items-center gap-2" 
                     title="Register new academic period"
                 >
                     <PlusCircle className="w-4 h-4 " />
@@ -384,27 +385,7 @@ const ExamSessionView = () => {
             <div className="mb-4">
                 <div className="flex justify-start items-center gap-4">
                 {sessionData?.students?.map(student => (
-                    <div key={student.id} className="cursor-default hover:shadow-md student-card w-[9em] bg-gray-100 border border-gray-300 flex flex-col justify-center items-center transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-100">
-                        {/* Update to use registered/stored image of student */}
-                        <div className="rounded-full w-16 h-16 mt-2 overflow-hidden">
-                            <img src={`https://placehold.co/500x500/0b445f/FFF?text=${getInitials(student.firstname,student.lastname)}`} alt={student.firstname} />
-                        </div>
-                        <div className="text-center mt-2 w-full">
-                            <p className="text-md text-gray-500 font-bold"> {student.id}</p>
-                            <p className="text-sm ">{student.firstname} {student.lastname}</p>
-                            <p className="text-xs mb-2 text-gray-500">{student.program} - Year {student.studyYear}</p>
-                            <p className={`
-                                font-medium text-xs p-2 border-t border-gray-300 uppercase w-full
-                                ${
-                                    student.isVerified 
-                                    ? 'bg-green-100 text-green-600'  // Green for success/completed
-                                    : 'bg-gray-200 text-gray-600'  // Gray for pending
-                                    
-                                }
-                                `}>{student.isVerified ? 'verified' : 'not verified'}</p>
-                        </div>
-                    
-                    </div>
+                  <StudentCard key={student.id} student={student}/>                   
                 ))}
                 </div>
             </div>

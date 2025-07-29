@@ -201,7 +201,7 @@ const RegisteredStudentsView = () => {
   }
 
   return (
-    <div className="h-full capitalize p-4 bg-white">
+    <div className="h-full p-4 bg-white">
       {/* Header section */}
       <div className="w-full flex justify-between items-center mb-4">
         <div className="flex items-center justify-end gap-4">
@@ -268,13 +268,15 @@ const RegisteredStudentsView = () => {
                 <p className="font-medium capitalize">0{sessionData?.allStudents.length}</p>
             </div>
         </div>
+
+
       {/* Student list */}
       <div className="overflow-y-auto h-[88%] p-2">
         <p className="text-sm my-2">
           {searchResults ? (
             `Search Results (${searchResults.length})`
           ) : (
-            `Registered Students(${sessionData.allStudents.length})`
+            `List of all eligible students sitting for this course`
           )}
         </p>
 

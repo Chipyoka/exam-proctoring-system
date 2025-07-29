@@ -16,7 +16,7 @@ const StudentCard = ({ student }) => {
       </div>
       <div className="text-center mt-2 w-full">
         <p className="text-md text-gray-500 font-bold">{student.id}</p>
-        <p className="text-sm">{student.firstname} {student.lastname}</p>
+        <p className="text-sm capitalize">{student.firstname} {student.lastname}</p>
         <p className="text-xs mb-2 text-gray-500">
           {student.program} - Year {student.studyYear}
         </p>
