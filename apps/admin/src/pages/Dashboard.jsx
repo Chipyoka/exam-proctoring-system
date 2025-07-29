@@ -11,7 +11,7 @@ const Dashboard = () => {
 
   return (
     <>
-        <div className="w-full flex items-start text-gray-400">
+        <div className="w-full flex items-start text-gray-600">
             <Sidebar/>
         
             <div className=" w-full">
