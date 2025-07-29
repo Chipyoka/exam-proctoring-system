@@ -99,7 +99,10 @@ const RoomsSidebar = () => {
     }
   }, [examSessions, selectedPeriod]);
 
-  if (isLoading) return <div className="p-4 text-center">Loading sessions...</div>;
+  if (isLoading) return <div className="overflow-hidden h-full w-full max-w-full bg-gray-100 p-6 flex flex-col justify-center items-center">
+    <div className="loader"></div>
+    <p className="mt-4">Loading sessions...</p>
+    </div>;
   if (error) return <div className="p-4 text-red-500">{error}</div>;
 
 /**

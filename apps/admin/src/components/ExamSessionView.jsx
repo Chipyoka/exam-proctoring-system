@@ -225,7 +225,7 @@ const ExamSessionView = () => {
 
   if (loading) {
     return (
-      <div className="p-4 flex flex-col items-center justify-center h-64">
+      <div className="p-4 flex flex-col justify-center items-center h-full">
         <div className="loader"></div>
         <p className="mt-4">Loading session details...</p>
       </div>
