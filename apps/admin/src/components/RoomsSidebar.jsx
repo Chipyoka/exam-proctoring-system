@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { firestore } from '../../../../shared/firebase';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 
-import useRoomStore from '../store/useRoomStore';
+import useExamSessionStore from '../store/useRoomStore';
 
 const RoomsSidebar = () => {
   const [examSessions, setExamSessions] = useState([]);
@@ -14,7 +14,7 @@ const RoomsSidebar = () => {
   const [error, setError] = useState(null);
 
  // Get Zustand actions
-  const { setSelectedRoom } = useRoomStore();
+ const { setSelectedExamSessionId } = useExamSessionStore();
 
   // Safe data fetcher
  const fetchSessionData = async (sessionDoc) => {
@@ -105,17 +105,9 @@ const RoomsSidebar = () => {
 /**
  * Handle room card clicks
  */
-const handleRoomCardClick = (session) => {
-    alert(`you have clicked ${session.id}`);
-    setSelectedRoom({
-      id: session.id,
-      roomName: session.room.name,
-      capacity: session.room.capacity,
-      date: session.date,
-      status: session.status,
-      periodName: session.periodName
-      // Add any other relevant data
-    });
+const handleRoomCardClick = (sessionId) => {
+    // alert(`you have clicked ${sessionId}`);
+   setSelectedExamSessionId(sessionId);
   };
 
   return (
@@ -140,7 +132,7 @@ const handleRoomCardClick = (session) => {
         {filteredSessions.map((session) => (
           <div 
             key={`session-${session.id}`}
-             onClick={() => handleRoomCardClick(session)}
+             onClick={() => handleRoomCardClick(session.id)}
             className="mb-4 bg-white p-4 flex items-center justify-between gap-2 cursor-pointer hover:shadow-sm"
           >
             <div>

@@ -1,7 +1,8 @@
 
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
-import RoomsSidebar from '../components/RoomsSidebar'
+import RoomsSidebar from '../components/RoomsSidebar';
+import ExamSessionView from '../components/ExamSessionView';
 
 const Dashboard = () => {
 
@@ -22,7 +23,7 @@ const Dashboard = () => {
                   <RoomsSidebar/>
                 </aside>
                 <aside className="w-3/4  h-[100%] border border-yellow-600">
-                  big column
+                  <ExamSessionView/>
                 </aside>
               </div>
        
