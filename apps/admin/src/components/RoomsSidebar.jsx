@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { firestore } from '../../../../shared/firebase';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 
+import useRoomStore from '../store/useRoomStore';
+
 const RoomsSidebar = () => {
   const [examSessions, setExamSessions] = useState([]);
   const [filteredSessions, setFilteredSessions] = useState([]);
@@ -10,6 +12,9 @@ const RoomsSidebar = () => {
   const [periods, setPeriods] = useState(['All']);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+ // Get Zustand actions
+  const { setSelectedRoom } = useRoomStore();
 
   // Safe data fetcher
  const fetchSessionData = async (sessionDoc) => {
@@ -97,6 +102,22 @@ const RoomsSidebar = () => {
   if (isLoading) return <div className="p-4 text-center">Loading sessions...</div>;
   if (error) return <div className="p-4 text-red-500">{error}</div>;
 
+/**
+ * Handle room card clicks
+ */
+const handleRoomCardClick = (session) => {
+    alert(`you have clicked ${session.id}`);
+    setSelectedRoom({
+      id: session.id,
+      roomName: session.room.name,
+      capacity: session.room.capacity,
+      date: session.date,
+      status: session.status,
+      periodName: session.periodName
+      // Add any other relevant data
+    });
+  };
+
   return (
     <div className="overflow-hidden border border-red-600 h-full w-full max-w-full bg-gray-100 py-2 px-4">
       <p>Academic Period</p>
@@ -119,6 +140,7 @@ const RoomsSidebar = () => {
         {filteredSessions.map((session) => (
           <div 
             key={`session-${session.id}`}
+             onClick={() => handleRoomCardClick(session)}
             className="mb-4 bg-white p-4 flex items-center justify-between gap-2 cursor-pointer hover:shadow-sm"
           >
             <div>
