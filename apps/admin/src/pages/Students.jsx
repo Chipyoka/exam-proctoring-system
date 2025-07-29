@@ -1,6 +1,7 @@
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import CoursesSidebar from '../components/CoursesSidebar';
+import RegisteredStudentsView from '../components/RegisteredStudentsView';
 
 const Students = () => {
     return(
@@ -17,7 +18,7 @@ const Students = () => {
                     <CoursesSidebar/>
                 </aside>
                 <aside className="w-3/4  h-[100%] overflow-hidden">
-                 <p>Students</p>
+                 <RegisteredStudentsView/>
                 </aside>
               </div>
        
