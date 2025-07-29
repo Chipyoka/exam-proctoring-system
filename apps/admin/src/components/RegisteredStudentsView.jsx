@@ -194,7 +194,7 @@ const RegisteredStudentsView = () => {
 
   if (!sessionData) {
     return (
-      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+      <div className="p-4 bg-yellow-50 border border-yellow-200 text-center">
         <p className="text-yellow-700">No student data available</p>
       </div>
     );

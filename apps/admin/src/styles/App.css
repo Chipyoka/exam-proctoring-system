@@ -8,7 +8,8 @@
   --greenshade:rgba(0, 190, 22, 0.05);
   --blueshade:rgba(52, 18, 218, 0.05);
   --darkgray:#a6a6a6;
-  --red:#da1912;
+  --red:#f44f49;
+  --red-hover:#ec4641;
   --primary:#0b445f;
   --primary-hover:#09374c;
 }
@@ -69,6 +70,19 @@ h4{
 }
 .btn-primary:hover{
   background-color: var(--primary-hover);
+}
+.btn-danger {
+  background-color: var(--red);
+  color: var(--white);
+  padding: 0.5rem 1.25rem;
+  transition: background-color 0.3s ease;
+  text-transform: uppercase;
+  border: 2px solid var(--red);
+  font-size: .7rem;
+  cursor: pointer;
+}
+.btn-danger:hover{
+  background-color: var(--red-hover);
 }
 
 .btn-primary-sm {
