@@ -216,7 +216,8 @@ const ExamSessionView = () => {
   // Render states
   if (!selectedExamSessionId) {
     return (
-      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="p-12 w-full h-full text-center">
+        <h4 className="text-3xl">Get started</h4>
         <p>Select an exam session to view details</p>
       </div>
     );
@@ -225,8 +226,8 @@ const ExamSessionView = () => {
   if (loading) {
     return (
       <div className="p-4 flex flex-col items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
-        <p>Loading session details...</p>
+        <div className="loader"></div>
+        <p className="mt-4">Loading session details...</p>
       </div>
     );
   }
