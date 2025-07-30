@@ -232,10 +232,10 @@ const CoursesSidebar = () => {
         <select
           value={selectedPeriod}
           onChange={(e) => setSelectedPeriod(String(e.target.value))}
-          className="text-[#2F7392] ml-2 w-full border-none outline-none bg-transparent"
+          className="uppercase text-[#2F7392] ml-2 w-full border-none outline-none bg-transparent"
         >
           {periods.map(period => (
-            <option key={String(period)} value={String(period)}>
+            <option  key={String(period)} value={String(period)}>
               {period}
             </option>
           ))}

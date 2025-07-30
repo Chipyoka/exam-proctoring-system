@@ -105,23 +105,25 @@ const AddRoom = () => {
 
                 <form onSubmit={handleSaveRoom} className="w-full">
                     <div className="input-group relative flex items-center border border-gray-300 px-3 py-2 transition-colors duration-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
-                        
+                        <label className="pr-2 text-gray-500 text-sm border-r border-gray-200" htmlFor="StartDate">Name</label>
+
                         <input 
                         type="text" 
                         value={roomName}
                         onChange={(e) => setRoomName(e.target.value)}
-                        placeholder="Room name (eg Room 106)" 
+                        placeholder="eg Room 106" 
                         name="roomName" 
                         className="text-gray-700 ml-2 w-full border-none outline-none bg-transparent focus:ring-0 focus:outline-none placeholder:text-sm"/>
                     </div>
 
                     <div className="mt-4 input-group relative flex items-center border border-gray-300 px-3 py-2 transition-colors duration-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
-                        
+                        <label className="pr-2 text-gray-500 text-sm border-r border-gray-200" htmlFor="StartDate">Capacity</label>
+
                         <input 
                         type="number" 
                         value={capacity}
                         onChange={(e) => setCapacity(e.target.value)}
-                        placeholder="Capacity (eg 100)" 
+                        placeholder="eg 100" 
                         name="capacity" 
                         className="text-gray-700 ml-2 w-full border-none outline-none bg-transparent focus:ring-0 focus:outline-none placeholder:text-sm"/>
                     </div>
@@ -129,19 +131,20 @@ const AddRoom = () => {
                     <hr className="my-6 text-gray-200" />
 
                     <div className="input-group relative flex items-center border border-gray-300 px-3 py-2 transition-colors duration-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
-                        
+                        <label className="pr-2 text-gray-500 text-sm border-r border-gray-200" htmlFor="StartDate">Location</label>
+
                         <input 
                         type="text" 
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
-                        placeholder="Location (eg Main Campus)" 
+                        placeholder="eg Main Campus" 
                         name="location" 
                         className="text-gray-700 ml-2 w-full border-none outline-none bg-transparent focus:ring-0 focus:outline-none placeholder:text-sm"/>
                     </div>
 
 
 
-                    {/* Login button */}
+                    {/* Save room button */}
                     <button 
                         type="submit"
                         className="w-full mt-6 flex items-center justify-center gap-x-4 btn-primary transition-colors duration-300"

@@ -21,10 +21,10 @@ const Modal = () => {
       
       <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
         <div 
-          className={`relative transform overflow-hidden bg-white text-left shadow-xl transition-all w-full max-w-${modalProps.width || 'md'}`}
+          className={`relative transform overflow-hidden bg-white text-left shadow-xl transition-all w-fit max-w-${modalProps.width || 'lg'}`}
         >
           {modalProps.title && (
-            <div className="flex items-center justify-between border-b p-4">
+            <div className="flex items-center justify-between border-b border-gray-300 p-4">
               <h3 className="text-lg font-medium text-gray-900">
                 {modalProps.title}
               </h3>

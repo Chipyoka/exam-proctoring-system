@@ -298,7 +298,7 @@ const ExamSessionView = () => {
                       onClick={() => openModal('addRoom', {
                       title: 'Register Academic Period',
                       closeOnClickOutside: false,
-                      width: 'md',
+                      // width: 'w-[1080px]',
                       children: <AddAcademicPeriod />
                     })}
                 >
