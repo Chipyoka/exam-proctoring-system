@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { collection, query, getDocs } from 'firebase/firestore';
 import { firestore } from '../../../../shared/firebase';
 
-import { Search } from 'lucide-react';
+import { Search, PlusCircle } from 'lucide-react';
 
 const InvigilatorsView = () => {
     const [invigilators, setInvigilators] = useState(null);
@@ -103,30 +103,45 @@ const InvigilatorsView = () => {
 
     return (
         <div className="w-full h-full flex flex-col">
-            {/* Search Bar */}
-            <div className="flex items-center gap-2 p-4 border-b border-gray-200">
-                <input
-                    type="text"
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    placeholder="Search by name, ID, faculty or phone"
-                    className="flex-1 text-sm border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                />
-                <button 
-                onClick={handleSearch}
-                className="btn-primary-sm flex items-center gap-2">
-                    <Search className="w-4 h-4" />
-                    Search
+              <div className="w-full flex justify-between items-center px-4 my-4 border-b border-gray-200 pb-4">
+                <div className="flex items-center justify-end gap-4">
+                <button className="btn-primary-sm flex items-center gap-2">
+                    <PlusCircle className="w-4 h-4" />
+                    add invigilator
                 </button>
-                {filteredInvigilators?.length !== invigilators?.length && (
-                    <button
-                        onClick={clearSearch}
-                        className="bg-red-50 p-2 text-red-500 hover:text-red-700 text-sm hover:bg-red-100"
-                    >
-                        Clear
-                    </button>
-                )}
+               
+                
+                </div>
+
+                <div className="w-[60%] max-w-[60%]">
+                    {/* Search bar */}
+                    <div className="flex items-center gap-2">
+                        <input
+                        type="text"
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                        placeholder="Search by name, ID, faculty or phone"
+                        className="flex-1 border border-gray-300 px-3 py-2 text-sm"
+                        />
+                        <button 
+                        onClick={handleSearch}
+                        className="btn-primary-sm flex items-center gap-2">
+                            <Search className="w-4 h-4" />
+                            Search
+                        </button>
+                        {filteredInvigilators?.length !== invigilators?.length && (
+                        <button
+                            onClick={clearSearch}
+                            className="bg-red-50 p-2 text-red-500 hover:text-red-700 text-sm hover:bg-red-100"
+                        >
+                            Clear
+                        </button>
+                        )}
+                    </div>
+                </div>
+
+                
             </div>
 
             {/* Invigilators Table Header */}
