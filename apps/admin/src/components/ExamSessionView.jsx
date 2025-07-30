@@ -311,7 +311,7 @@ const ExamSessionView = () => {
                     onClick={() => openModal('addRoom', {
                       title: 'Add Exam Session',
                       closeOnClickOutside: false,
-                      width: 'md',
+                      // width: 'md',
                       children: <AddExamSession />
                     })}
                     >
