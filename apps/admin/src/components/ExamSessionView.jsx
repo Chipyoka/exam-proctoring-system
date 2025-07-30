@@ -2,6 +2,12 @@ import { useEffect, useState } from 'react';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { firestore } from '../../../../shared/firebase';
 import useExamSessionStore from '../store/useRoomStore';
+import useModalStore from '../store/useModalStore';
+
+import Modal from './modals/Modal';
+import AddRoom from './modals/AddRoom';
+import AddAcademicPeriod from './modals/AddAcademicPeriod';
+import AddExamSession from './modals/AddExamSession';
 
 import { PlusCircle } from 'lucide-react';
 import StudentCard from './StudentCard';
@@ -11,6 +17,8 @@ const ExamSessionView = () => {
   const [sessionData, setSessionData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const { openModal } = useModalStore();
 
     //   format timestamps
 
@@ -274,6 +282,12 @@ const ExamSessionView = () => {
                 <button 
                     className="btn-primary-outlined-sm flex justify-center items-center gap-2 " 
                     title="Add new room"
+                    onClick={() => openModal('addRoom', {
+                      title: 'Add Room',
+                      closeOnClickOutside: false,
+                      width: 'md',
+                      children: <AddRoom />
+                    })}
                 >
                     <PlusCircle className="w-4 h-4 " />
                     room
@@ -281,13 +295,26 @@ const ExamSessionView = () => {
                 <button 
                     className="btn-primary-outlined-sm flex justify-center items-center gap-2" 
                     title="Register new academic period"
+                      onClick={() => openModal('addRoom', {
+                      title: 'Register Academic Period',
+                      closeOnClickOutside: false,
+                      width: 'md',
+                      children: <AddAcademicPeriod />
+                    })}
                 >
                     <PlusCircle className="w-4 h-4 " />
                     Academic Period
                 </button>
                 <button 
                     className="btn-primary-sm flex justify-center items-center gap-2" 
-                    title="Add new exam session">
+                    title="Add new exam session"
+                    onClick={() => openModal('addRoom', {
+                      title: 'Add Exam Session',
+                      closeOnClickOutside: false,
+                      width: 'md',
+                      children: <AddExamSession />
+                    })}
+                    >
                     <PlusCircle className="w-4 h-4 " />
                     exam session
                 </button>
@@ -390,6 +417,9 @@ const ExamSessionView = () => {
                 </div>
             </div>
        </div>
+
+       {/* Render the modal portal once */}
+          <Modal />
 
    
     </div>
