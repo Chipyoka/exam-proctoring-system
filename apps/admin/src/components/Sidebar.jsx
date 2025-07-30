@@ -5,7 +5,7 @@ import useAuthStore from '../store/authStore';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import Logo from '../assets/eps-white.png'; 
-import { LogOut } from 'lucide-react';
+import { LogOut, File } from 'lucide-react';
 
 const navItems = [
   { label: 'Dashboard', path: '/' },
@@ -63,6 +63,17 @@ const handleLogout = () => {
         </div>
 
       <div>
+        <div className="bg-[#2F7392] p-2">
+          <p className="font-bold text-white text-lg">Generate Reports</p>
+          <p className="text-sm text-white mb-2">
+            Click the button below to generate reports and analytics
+          </p>
+          <button className="btn-primary-outlined-sm w-full hover:shadow-sm flex items-center justify-center gap-x-2">
+            <File className="w-5 h-5 " />
+            Generate
+          </button>
+        </div>
+        <hr className="my-6 text-gray-400" />
            <button 
                     onClick={handleLogout}
                     className="w-full mb-2 py-2 flex items-center justify-center gap-x-4 bg-red-400 text-gray-50 hover:bg-[#FF5252] transition-colors duration-300"
@@ -75,7 +86,7 @@ const handleLogout = () => {
                     <p>Logout</p>
                     <LogOut className="w-5 h-5 text-gray-50" />
                     </div>
-                </button>
+            </button>
       </div>
     </aside>
   );
