@@ -265,7 +265,7 @@ const ExamSessionView = () => {
   }
   // Main render with your schema data
   return (
-    <div className="h-full capitalize p-4 bg-white">
+    <div className="h-full p-4 bg-white">
         {/* top row */}
         <div className="w-full flex justify-between items-center">
               {/* Academic Period */}
@@ -283,7 +283,7 @@ const ExamSessionView = () => {
                     className="btn-primary-outlined-sm flex justify-center items-center gap-2 " 
                     title="Add new room"
                     onClick={() => openModal('addRoom', {
-                      title: 'Add Room',
+                      title: 'Add New Room',
                       closeOnClickOutside: false,
                       width: 'md',
                       children: <AddRoom />

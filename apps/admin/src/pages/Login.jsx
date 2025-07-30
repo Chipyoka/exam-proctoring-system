@@ -69,7 +69,7 @@ const handleLogin = async (e) => {
     const idTokenResult = await getIdTokenResult(user);
     const role = idTokenResult.claims.role;
 
-    // 👇 Check if role matches the app (change as needed)
+    // 👇 Check if role matches the app
 
     if (role !== 'admin'){
       navigate("/admin/unauthorised");

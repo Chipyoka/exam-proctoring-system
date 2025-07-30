@@ -30,9 +30,10 @@ const Modal = () => {
               </h3>
               <button
                 type="button"
-                className="text-gray-400 hover:text-gray-500"
+                className="text-gray-400 w-8 h-8 bg-gray-50 flex justify-center items-center rounded-full p-2 hover:text-gray-500 hover:bg-gray-100"
                 onClick={closeModal}
                 aria-label="Close"
+                title="Close"
               >
                 <X className="h-5 w-5" />
               </button>
