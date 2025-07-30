@@ -34,22 +34,56 @@ const AddExamSession = () => {
         }
     };
 
+
     /**
-     * Converts a raw input date string into a Firestore Timestamp object.
-     * @param {string} rawDateInput - e.g. '2025-08-05' or '2025-08-05T10:30'
+     * Converts a raw time input (HH:mm) string into a Firestore Timestamp object.
+     * @param {string} rawTimeInput - e.g. '10:30'
      * @returns {Timestamp|null} Firestore Timestamp or null if invalid
      */
-    const convertToFirestoreTimestamp = (rawDateInput) => {
-        if (!rawDateInput) return null;
+    const convertToFirestoreTimestamp = (rawTimeInput) => {
+    if (!rawTimeInput) return null;
 
-        const dateObj = new Date(rawDateInput);
-        if (isNaN(dateObj.getTime())) return null;
+    // Get the current date for consistency (so we keep the date part intact)
+    const currentDate = new Date();
+    const [hours, minutes] = rawTimeInput.split(':').map(num => parseInt(num, 10));
 
-        return Timestamp.fromDate(dateObj);
+    // Set the date object with the current date, and the time from the input
+    currentDate.setHours(hours, minutes, 0, 0); // Set hours, minutes, and reset seconds and milliseconds
+
+    if (isNaN(currentDate.getTime())) return null;
+
+    return Timestamp.fromDate(currentDate); // Return as Firestore Timestamp
     };
+
 
     // console.log("Date Test", convertToFirestoreTimestamp('2025-08-05'));
   
+    /**
+         * Computes the next sequential document ID for a given collection and prefix.
+         * @param {string} prefix - The fixed prefix of the document IDs (e.g., 'session_', 'esc_')
+         * @param {string} collectionName - The name of the Firestore collection
+         * @param {object} db - Firestore instance
+         * @returns {Promise<string>} The next available document ID
+         */
+        const getNextDocId = async (prefix, collectionName, db) => {
+        const querySnapshot = await getDocs(collection(db, collectionName));
+        let max = 0;
+
+        querySnapshot.forEach(doc => {
+            const id = doc.id;
+            if (id.startsWith(prefix)) {
+            const number = parseInt(id.split('_')[1], 10);
+            if (!isNaN(number) && number > max) {
+                max = number;
+            }
+            }
+        });
+
+        return `${prefix}${max + 1}`;
+        };
+
+
+    // Fetch related data
     useEffect(()=>{
         const fetchData = async () =>{
             setDataLoading(true);
@@ -103,53 +137,87 @@ const AddExamSession = () => {
         e.preventDefault();
         setMessage({});
 
-        if (!periodNameOptions || !type || !mode || !startDate || !endDate || !registrationStart || !registrationEnd) {
+        if (!selectedPeriod || !startTime || !endTime || !selectedRoom || !examDate) {
             setMessage({ type: 'error', text: 'All fields are required' });
+            return;
+        }
+
+        if(selectedCourses.length < 1){
+            setMessage({ type: 'error', text: 'You need to select at least 1 course' });
             return;
         }
 
 
         setLoading(true);
-        const currentperiodNameOptions = periodNameOptions; // Preserve before resetting
 
         try {
-            const normalizedId = periodNameOptions.toLowerCase().replace(/\s+/g, '_');
-            const periodRef = doc(firestore, 'academicPeriod', normalizedId);
-            const periodSnapshot = await getDoc(periodRef);
+                // Step 1: Generate new session ID
+                const newSessionId = await getNextDocId('session_', 'examSessions', firestore);
 
-            if (periodSnapshot.exists()) {
-            setMessage({ type: 'error', text: `Academic Period "${periodNameOptions}" already exists.` });
-            return;
-            }
+                // Step 2: Create examSession document
+                const sessionRef = doc(firestore, 'examSessions', newSessionId);
+                await setDoc(sessionRef, {
+                    academicPeriod : doc(firestore, 'academicPeriod', selectedPeriod),
+                    room : doc(firestore, 'rooms', selectedRoom),
+                    date : examDate,
+                    startTime: convertToFirestoreTimestamp(startTime),
+                    endTime: convertToFirestoreTimestamp(endTime),
+                    createdAt: new Date().toISOString(),
+                    status: 'pending',
+                });
 
-            await setDoc(periodRef, {
-            name: periodNameOptions,
-            studyMode: mode,
-            type: type,
-            startDate: convertToFirestoreTimestamp(startDate),
-            endDate: convertToFirestoreTimestamp(endDate),
-            registrationStart: convertToFirestoreTimestamp(registrationStart),
-            registrationEnd: convertToFirestoreTimestamp(registrationEnd),
-            status: 'pending',
-            });
+                console.log(`Exam session created with ID: ${newSessionId}`);
 
-            console.log(`Academic Period '${periodNameOptions}' created with ID '${normalizedId}'`);
-            setMessage({ type: 'success', text: `"${currentperiodNameOptions}" created successfully.` });
+                // Step 3: Generate new examSessionCourses ID
+               if (Array.isArray(selectedCourses) && selectedCourses.length > 0) {
+                    let escCounter = 0;
+
+                    // Get all current ESC IDs to compute once and reduce reads
+                    const existingEscDocs = await getDocs(collection(firestore, 'examSessionCourses'));
+
+                    existingEscDocs.forEach(doc => {
+                    const id = doc.id;
+                    if (id.startsWith('esc_')) {
+                        const num = parseInt(id.split('_')[1], 10);
+                        if (!isNaN(num) && num > escCounter) {
+                        escCounter = num;
+                        }
+                    }
+                    });
+
+                    // Now create one document per selected course
+                    for (const courseId of selectedCourses) {
+                        escCounter++; // Increment for each course document
+                        const newEscId = `esc_${escCounter}`;
+                        const escRef = doc(firestore, 'examSessionCourses', newEscId);
+
+                        await setDoc(escRef, {
+                            session: doc(firestore, 'examSessions', newSessionId),
+                            course: doc(firestore, 'courses', courseId),
+                        });
+
+                        console.log(`Linked course ${courseId} to session ${newSessionId} as ${newEscId}`);
+                    }
+                }
+
+
+
+            setMessage({ type: 'success', text: 'Exam session recorded successfully.' });
 
         } catch (err) {
-            console.error(err.message);
+            console.error('Error creating exam session or join document:', err.message);
             setMessage({ type: 'error', text: 'Something went wrong. Please try again later.' });
 
         } finally {
             setLoading(false);
             setTimeout(() => {
-                setMode('');
-                setType('');
-                setPeriodNameOptions('');
-                setStartDate('');
-                setEndDate('');
-                setRegistrationStart('');
-                setRegistrationEnd('');
+              setSelectedRoom('');
+              setSelectedPeriod('');
+              setStartTime('');
+              setEndTime('');
+              setExamDate('');
+              setCapacity(0);
+              setSelectedCourses([]);
             }, 5000);
         }
     };
