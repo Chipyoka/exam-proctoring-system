@@ -1,10 +1,14 @@
 import { BrowserRouter as Router, Routes, Route,  Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 
+import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
+import Scanner from './pages/invigilator/Scanner';
 import Students from './pages/Students';
 import Invigilators from './pages/Invigilators';
+import InvigilatorLogin from './pages/InvigilatorLogin';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import NotFound from './pages/NotFound';
 import NotAuthorised from './pages/NotAuthorised';
 
@@ -17,20 +21,24 @@ function App() {
     <Router>
       <Routes>
         {/* Public Route */}
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<InvigilatorLogin />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/admin/login" element={<Login />} />
 
         {/* Not found URLs - 404 */}
         <Route path="/*" element={<NotFound />} />
 
+         <Route path="/invigilator/unauthorised" element={<NotAuthorised />} />
          <Route path="/admin/unauthorised" element={<NotAuthorised />} />
 
 
+          <Route path="/" element={<Home />} />
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<Dashboard />} />
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin/dashboard/students" element={<Students />} />
           <Route path="/admin/dashboard/invigilators" element={<Invigilators />} />
+          <Route path="/invigilator/scanner" element={<Scanner />} />
         </Route>
       </Routes>
     </Router>

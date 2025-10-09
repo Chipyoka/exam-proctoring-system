@@ -16,7 +16,7 @@ const NotFound = () => {
           to="/"
           className="inline-block btn-primary transition duration-200"
         >
-          Go to Dashboard
+          Return
         </Link>
       </div>
     </div>

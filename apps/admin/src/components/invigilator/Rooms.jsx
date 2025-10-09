@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { firestore } from '../../../../shared/firebase';
+import { firestore } from '../../../../../shared/firebase';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 
-import useExamSessionStore from '../store/useRoomStore';
+import useScannerStore from '../../store/useScannerStore';
 
-const RoomsSidebar = () => {
+const Rooms = () => {
   const [examSessions, setExamSessions] = useState([]);
   const [filteredSessions, setFilteredSessions] = useState([]);
   const [selectedPeriod, setSelectedPeriod] = useState('All');
@@ -14,7 +14,7 @@ const RoomsSidebar = () => {
   const [error, setError] = useState(null);
 
  // Get Zustand actions
- const { setSelectedExamSessionId } = useExamSessionStore();
+ const { setSelectedExamSessionId } = useScannerStore();
 
   // Safe data fetcher
  const fetchSessionData = async (sessionDoc) => {
@@ -109,7 +109,7 @@ const RoomsSidebar = () => {
  * Handle room card clicks
  */
 const handleRoomCardClick = (sessionId) => {
-    alert(`you have clicked ${sessionId}`);
+    alert(`Invigilator you have clicked ${sessionId}`);
    setSelectedExamSessionId(sessionId);
   };
 
@@ -175,4 +175,4 @@ const handleRoomCardClick = (sessionId) => {
   );
 };
 
-export default RoomsSidebar;
+export default Rooms;
