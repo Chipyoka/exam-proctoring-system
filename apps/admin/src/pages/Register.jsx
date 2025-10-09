@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth } from '../../../../shared/firebase';
+import { createUserWithEmailAndPassword, updateProfile, deleteUser } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, firestore } from '../../../../shared/firebase';
 
 import { UserCircle, Lock, Phone, GraduationCap } from 'lucide-react';
 import Logo from '../assets/eps-white.png';
@@ -22,12 +23,10 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState({});
 
-  // 🔁 Handle input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // 👁️ Toggle password visibility
   const handleShowPassword = () => {
     setShowPassword(!showPassword);
     if (!showPassword) {
@@ -37,14 +36,12 @@ const Signup = () => {
     }
   };
 
-  // 🧠 Handle signup
   const handleSignup = async (e) => {
     e.preventDefault();
     setMessage({});
 
     const { fullName, phone, faculty, email, password, confirmPassword } = formData;
 
-    // ✅ Validation
     if (!fullName || !phone || !faculty || !email || !password || !confirmPassword) {
       setMessage({ type: 'error', text: 'All fields are required' });
       return;
@@ -62,34 +59,70 @@ const Signup = () => {
 
     setLoading(true);
 
-    try {
-      // 🔹 Create Firebase user
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+    let user = null; // Keep track of user for possible rollback
 
-      // 🔹 Update display name
+    try {
+      // 🔹 Step 1: Create Firebase Auth user
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      user = userCredential.user;
+
+      // 🔹 Step 2: Update profile
       await updateProfile(user, { displayName: fullName });
 
-      // 🔹 Assign 'invigilator' role via Express API
-      await fetch('http://localhost:4000/setRole', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uid: user.uid, role: 'invigilator' })
+      // 🔹 Step 3: Create Firestore document under "invigilators"
+      const invigilatorRef = doc(firestore, 'invigilators', user.uid);
+      const invigilatorSnap = await getDoc(invigilatorRef);
+
+      if (invigilatorSnap.exists()) {
+        throw new Error('An account already exists for this user.');
+      }
+
+      await setDoc(invigilatorRef, {
+        uid: user.uid,
+        fullname: fullName,
+        lastname: fullName.split(' ').slice(-1)[0],
+        phone,
+        faculty,
+        totalScans: 0,
+        isActivated: false,
+        createdAt: new Date().toISOString()
       });
 
-      setMessage({ type: 'info', text: 'Signup successful! Redirecting to login...' });
+      // 🔹 Step 4: Assign role via backend API
+      const response = await fetch('http://localhost:4000/setRole', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: user.uid, role: 'invigilator' }),
+      });
 
-      // ⏩ Redirect to login
-      setTimeout(() => navigate('/login'), 2000);
+      if (!response.ok) {
+        throw new Error('Failed to assign role on backend.');
+      }
+
+      // 🔹 Step 5: Success message and redirect
+      setMessage({ type: 'success', text: 'Signup successful! Redirecting to login...' });
+      setTimeout(() => navigate('/login'), 2500);
+
     } catch (error) {
       console.error('Signup error:', error.message);
-      setMessage({ type: 'error', text: error.message });
+
+      // 🔹 Rollback: Delete Auth user if Firestore or backend failed
+      if (user) {
+        try {
+          await deleteUser(user);
+          console.warn('Auth user deleted due to failed Firestore or backend operation.');
+        } catch (rollbackError) {
+          console.error('Rollback failed:', rollbackError.message);
+        }
+      }
+
+      setMessage({ type: 'error', text: error.message || 'Signup failed. Please try again.' });
     } finally {
       setLoading(false);
     }
   };
 
-  document.title = "EPS - Invigilator Signup";
+  document.title = 'EPS - Invigilator Signup';
 
   return (
     <div className="text-gray-500 flex flex-col items-center justify-center w-full max-w-full h-screen overflow-y-auto py-12 bg-[url('../assets/classroom-bg-min.webp')] bg-no-repeat bg-cover bg-center">
@@ -108,6 +141,8 @@ const Signup = () => {
                   ? 'text-yellow-500'
                   : message.type === 'info'
                   ? 'text-blue-500'
+                  : message.type === 'success'
+                  ? 'text-green-500'
                   : message.type === 'error'
                   ? 'text-red-500'
                   : 'text-gray-700'
@@ -126,7 +161,7 @@ const Signup = () => {
 
           <form onSubmit={handleSignup} className="w-full space-y-3">
             {/* Full Name */}
-            <div className="input-group flex items-center border border-gray-300 px-3 py-2 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+            <div className="input-group flex items-center border border-gray-300 px-3 py-2">
               <div className="bg-gray-100 p-2">
                 <UserCircle className="w-6 h-6 text-gray-500" />
               </div>
@@ -141,7 +176,7 @@ const Signup = () => {
             </div>
 
             {/* Phone */}
-            <div className="input-group flex items-center border border-gray-300 px-3 py-2 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+            <div className="input-group flex items-center border border-gray-300 px-3 py-2">
               <div className="bg-gray-100 p-2">
                 <Phone className="w-6 h-6 text-gray-500" />
               </div>
@@ -156,7 +191,7 @@ const Signup = () => {
             </div>
 
             {/* Faculty */}
-            <div className="input-group flex items-center border border-gray-300 px-3 py-2 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+            <div className="input-group flex items-center border border-gray-300 px-3 py-2">
               <div className="bg-gray-100 p-2">
                 <GraduationCap className="w-6 h-6 text-gray-500" />
               </div>
@@ -171,7 +206,7 @@ const Signup = () => {
             </div>
 
             {/* Email */}
-            <div className="input-group flex items-center border border-gray-300 px-3 py-2 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+            <div className="input-group flex items-center border border-gray-300 px-3 py-2">
               <div className="bg-gray-100 p-2">
                 <UserCircle className="w-6 h-6 text-gray-500" />
               </div>
@@ -186,7 +221,7 @@ const Signup = () => {
             </div>
 
             {/* Password */}
-            <div className="input-group flex items-center border border-gray-300 px-3 py-2 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+            <div className="input-group flex items-center border border-gray-300 px-3 py-2">
               <div className="bg-gray-100 p-2">
                 <Lock className="w-6 h-6 text-gray-500" />
               </div>
@@ -201,7 +236,7 @@ const Signup = () => {
             </div>
 
             {/* Confirm Password */}
-            <div className="input-group flex items-center border border-gray-300 px-3 py-2 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+            <div className="input-group flex items-center border border-gray-300 px-3 py-2">
               <div className="bg-gray-100 p-2">
                 <Lock className="w-6 h-6 text-gray-500" />
               </div>
@@ -215,11 +250,14 @@ const Signup = () => {
               />
             </div>
 
-            <p onClick={handleShowPassword} className="hyperlink text-xs mt-2 w-fit no-select">
+            <p
+              onClick={handleShowPassword}
+              className="hyperlink text-xs mt-2 w-fit no-select"
+            >
               {showPassword ? 'Hide' : 'Show'} password
             </p>
 
-            {/* Signup button */}
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading}

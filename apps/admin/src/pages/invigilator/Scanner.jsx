@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { auth } from "../../../../../shared/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import useAuthStore from "../../store/authStore";
-
+import { useNavigate } from 'react-router-dom';
 import Logo from '../../assets/eps-white.png'; 
 import { LogOut} from 'lucide-react';
 
@@ -15,6 +15,8 @@ const Scanner = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sessionExpired, setSessionExpired] = useState(false);
+
+    const navigate = useNavigate();
 
   useEffect(() => {
     // Listen for auth state changes (login/logout/session expiry)
@@ -61,7 +63,7 @@ const Scanner = () => {
       setUserRole(data.role || "none");
     } catch (err) {
       console.error("Error fetching role:", err);
-      setError("Could not load user role.");
+      setError("Check your internet");
     } finally {
       setLoading(false);
     }
@@ -82,7 +84,10 @@ const Scanner = () => {
   if (loading)
     return (
       <div className="flex flex-col items-center justify-center h-screen text-gray-700">
-        <p className="text-lg font-medium">Loading your session...</p>
+           <div className="p-4 flex flex-col justify-center items-center h-full mt-6">
+                <div className="loader"></div>
+                <p className="mt-4">Loading...</p>
+            </div>
       </div>
     );
 
@@ -105,6 +110,7 @@ const Scanner = () => {
         <div className="bg-primary flex items-start justify-between p-4 mb-4 w-full">
             <img src={Logo} alt="Exam proctoring system" className="h-[33px]" />
             <button
+                 onClick={handleLogout}
                 className="w-28 mb-2 py-2 flex items-center justify-center gap-x-4 bg-red-400 text-gray-50 hover:bg-[#FF5252] transition-colors duration-300"
             >
 
@@ -115,14 +121,20 @@ const Scanner = () => {
             </button>
         </div>
 
+        <div className="flex flex-col md:flex-row justify-center mt-4 p-4">
+            <button
+            onClick={()=>{navigate('/invigilator/home')}}
+            className="bg-primary text-white px-8 py-4 hover:bg-blue-700 transition-colors duration-300"
+            
+            >
+                Return Home
+            </button>
+        </div>
+
       <div className="bg-white shadow-md py-6 px-4 w-full w-full text-center">
       <h2 className="text-2xl font-semibold text-primary">
-        Welcome, Invigilator
+        Select room to scan in
       </h2>
-        <p className="text-gray-700 mb-2">
-          <strong>Email:</strong> {userEmail}
-        </p>
-        <p>Select a room to scan in</p>
 
         {error && <p className="text-red-500 mt-3">{error}</p>}
 

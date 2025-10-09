@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route,  Navigate } from 'react-router-
 import ProtectedRoute from './components/ProtectedRoute';
 
 import Home from './pages/Home';
+import ScannerHome from './pages/invigilator/ScannerHome';
 import Dashboard from './pages/Dashboard';
 import Scanner from './pages/invigilator/Scanner';
 import Students from './pages/Students';
@@ -38,7 +39,9 @@ function App() {
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin/dashboard/students" element={<Students />} />
           <Route path="/admin/dashboard/invigilators" element={<Invigilators />} />
+          
           <Route path="/invigilator/scanner" element={<Scanner />} />
+          <Route path="/invigilator/home" element={<ScannerHome />} />
         </Route>
       </Routes>
     </Router>
