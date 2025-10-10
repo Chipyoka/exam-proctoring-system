@@ -2,9 +2,10 @@ import { BrowserRouter as Router, Routes, Route,  Navigate } from 'react-router-
 import ProtectedRoute from './components/ProtectedRoute';
 
 import Home from './pages/Home';
-import ScannerHome from './pages/invigilator/ScannerHome';
 import Dashboard from './pages/Dashboard';
+import ScannerHome from './pages/invigilator/ScannerHome';
 import Scanner from './pages/invigilator/Scanner';
+import StudentRegistration from './pages/invigilator/StudentRegistration';
 import Students from './pages/Students';
 import Invigilators from './pages/Invigilators';
 import InvigilatorLogin from './pages/InvigilatorLogin';
@@ -25,6 +26,7 @@ function App() {
         <Route path="/login" element={<InvigilatorLogin />} />
         <Route path="/register" element={<Register />} />
         <Route path="/admin/login" element={<Login />} />
+        <Route path="/registration" element={<StudentRegistration />} />
 
         {/* Not found URLs - 404 */}
         <Route path="/*" element={<NotFound />} />
