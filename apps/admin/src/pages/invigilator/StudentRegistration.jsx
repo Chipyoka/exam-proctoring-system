@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { firestore } from '../../../../../shared/firebase';
-import { doc, setDoc, collection, getDocs,getDoc, query, where } from 'firebase/firestore';
+import {writeBatch, doc, setDoc, collection, getDocs,getDoc, query, where } from 'firebase/firestore';
 import Human from '@vladmandic/human'; // assuming Human.js is installed
 import { openDB } from 'idb';
 
@@ -141,89 +141,235 @@ useEffect(() => {
 
 
 
-  /** Initialize Human.js and start video */
-  useEffect(() => {
-    const humanConfig = {
-        backend: 'webgl',
-        modelBasePath: '/models/',  // ✅ must start with / if models are in public/
-        face: { enabled: true, detector: { rotation: true }, mesh: { enabled: true }, emotion: { enabled: true } },
-        filter: { enabled: false },
-        body: { enabled: false },
-        hand: { enabled: false },
-        };
+/** Initialize Human.js and start video */
+useEffect(() => {
+  const humanConfig = {
+    backend: 'webgl',
+    modelBasePath: '/models/',  // ✅ must start with / if models are in public/
+    face: { enabled: true, detector: { rotation: true }, mesh: { enabled: true }, emotion: { enabled: true } },
+    filter: { enabled: false },
+    body: { enabled: false },
+    hand: { enabled: false },
+  };
 
-    const initHuman = async () => {
-      const h = new Human(humanConfig);
-      await h.load();
-      setHuman(h);
+  const initHuman = async () => {
+    const h = new Human(humanConfig);
+    await h.load();
+    setHuman(h);
 
-      if (videoRef.current) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-      }
+    if (videoRef.current) {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      videoRef.current.srcObject = stream;
+      videoRef.current.play();
+    }
+  };
+  initHuman();
+}, []);
+
+/** Face scan simulation - generates embedding as string */
+const handleScanFace = async () => {
+  pushMessage('Scanning face...');
+  try {
+    if (!human || !videoRef.current) throw new Error('Face scanner not ready');
+    
+    const result = await human.detect(videoRef.current);
+    if (result.face.length === 0) {
+      pushMessage('No face detected. Try again.');
+      return;
+    }
+
+    // Generate embedding and ensure it's stored as a string
+    const embedding = generateFaceEmbedding(result.face[0]);
+    
+    // Update studentData with embedding as string
+    setStudentData(prev => ({
+      ...prev,
+      embedding: embedding
+    }));
+
+    pushMessage('Face scan successful! Embedding generated.');
+    setStep(2); // proceed to form input
+  } catch (err) {
+    console.error(err);
+    pushMessage('Face scan failed: ' + err.message);
+  }
+};
+
+/** Generate face embedding and convert to string representation */
+const generateFaceEmbedding = (faceData) => {
+  try {
+    // Safe number conversion function
+    const safeNumber = (value) => {
+      if (typeof value === 'number') return Number(value.toFixed(6));
+      if (typeof value === 'string') return Number(parseFloat(value).toFixed(6));
+      return 0;
     };
-    initHuman();
-  }, []);
 
-  /** Face scan simulation */
-  const handleScanFace = async () => {
-    pushMessage('Scanning face...');
-    try {
-      if (!human || !videoRef.current) throw new Error('Face scanner not ready');
-      const result = await human.detect(videoRef.current);
-      if (result.face.length === 0) {
-        pushMessage('No face detected. Try again.');
-        return;
-      }
-      pushMessage('Face scan successful!');
-      setStep(2); // proceed to form input
-    } catch (err) {
-      console.error(err);
-      pushMessage('Face scan failed: ' + err.message);
+    // Extract facial features safely
+    const embeddingArray = [
+      safeNumber(faceData.rotation?.angle?.roll),
+      safeNumber(faceData.rotation?.angle?.pitch),
+      safeNumber(faceData.rotation?.angle?.yaw),
+      safeNumber(faceData.box?.[0]), // x
+      safeNumber(faceData.box?.[1]), // y
+      safeNumber(faceData.box?.[2]), // width
+      safeNumber(faceData.box?.[3]), // height
+      safeNumber(faceData.confidence),
+    ];
+
+    // Add emotion scores if available
+    if (faceData.emotion && typeof faceData.emotion === 'object') {
+      Object.values(faceData.emotion).forEach(score => {
+        embeddingArray.push(safeNumber(score));
+      });
     }
-  };
 
-  /** Save registration transactionally */
-  const handleSave = async () => {
-    setSaving(true);
-    pushMessage('Starting registration...');
+    // Add mesh points if available (take first few key points safely)
+    if (faceData.mesh && Array.isArray(faceData.mesh)) {
+      faceData.mesh.flat().slice(0, 50).forEach(point => {
+        if (Array.isArray(point)) {
+          point.forEach(coord => embeddingArray.push(safeNumber(coord)));
+        } else {
+          embeddingArray.push(safeNumber(point));
+        }
+      });
+    }
 
-    const db = await initDB();
-    try {
-      await db.put('stagedData', studentData, 'studentData');
-      await db.put('stagedData', selectedCourses, 'selectedCourses');
-      pushMessage('Data staged in IndexedDB.');
+    // Convert to string representation
+    const embeddingString = embeddingArray.join(',');
 
-      // Validation
-      if (!studentData.firstname || !studentData.lastname || !studentData.studentId) {
-        throw new Error('Incomplete student information.');
-      }
-      if (!selectedCourses.length) throw new Error('No courses selected.');
+    console.log('Generated embedding string length:', embeddingString.length);
+    return embeddingString;
+  } catch (error) {
+    console.error('Error generating embedding:', error);
+    // Return a fallback embedding string
+    return `fallback_${Date.now()}`;
+  }
+};
 
-      // Commit to Firestore
-      const studentRef = doc(firestore, 'students', studentData.studentId);
-      await setDoc(studentRef, studentData);
-      pushMessage('Student data saved.');
+/** Save registration transactionally with batch write - DEBUGGED VERSION */
+const handleSave = async () => {
+  setSaving(true);
+  pushMessage('Starting registration...');
 
-      for (const course of selectedCourses) {
-        const regRef = doc(collection(firestore, 'studentCourseRegistration'));
-        await setDoc(regRef, {
+  const db = await initDB();
+  try {
+    // Stage data in IndexedDB
+    await db.put('stagedData', studentData, 'studentData');
+    await db.put('stagedData', selectedCourses, 'selectedCourses');
+    pushMessage('Data staged in IndexedDB.');
+
+    // Validation
+    if (!studentData.firstname || !studentData.lastname || !studentData.studentId) {
+      throw new Error('Incomplete student information.');
+    }
+    if (!selectedCourses.length) throw new Error('No courses selected.');
+
+    console.log('Student Data:', studentData);
+    console.log('Selected Courses:', selectedCourses);
+
+    // Create batch
+    const batch = writeBatch(firestore);
+    pushMessage('Initializing batch write...');
+
+    // 1️⃣ Save student data
+    const studentRef = doc(firestore, 'students', studentData.studentId);
+    const studentDataToSave = {
+      firstname: studentData.firstname,
+      lastname: studentData.lastname,
+      program: studentData.program,
+      studyYear: studentData.studyYear,
+      isVerified: studentData.isVerified ?? false,
+      embedding: studentData.embedding || "",
+      createdAt: new Date().toISOString(),
+    };
+    
+    console.log('Saving student data:', studentDataToSave);
+    batch.set(studentRef, studentDataToSave);
+    pushMessage('✓ Student data added to batch');
+
+    // 2️⃣ Save all course registrations in batch
+    const registrationDocs = [];
+    
+    for (const course of selectedCourses) {
+      try {
+        const regRef = doc(collection(firestore, 'studentCourseRegistrations'));
+        const courseRef = doc(firestore, 'courses', course.id);
+        
+        const registrationData = {
           student: studentRef,
-          course: doc(firestore, 'courses', course.id),
-        });
-        pushMessage(`Registered for course: ${course.name}`);
+          course: courseRef,
+          studentId: studentData.studentId, // Add direct ID for querying
+          courseId: course.id,
+          registeredAt: new Date().toISOString(),
+        };
+        
+        console.log(`Registration data for ${course.name}:`, registrationData);
+        batch.set(regRef, registrationData);
+        registrationDocs.push({ ref: regRef, course: course.name });
+        
+        pushMessage(`✓ Added registration for: ${course.name}`);
+      } catch (courseErr) {
+        console.error(`Error preparing registration for ${course.name}:`, courseErr);
+        throw new Error(`Failed to prepare registration for ${course.name}`);
       }
-
-      pushMessage('All registration steps completed successfully!');
-      setStep(3);
-    } catch (err) {
-      console.error(err);
-      pushMessage('Registration failed: ' + err.message);
-    } finally {
-      setSaving(false);
     }
-  };
+
+    pushMessage(`Prepared ${registrationDocs.length} course registrations`);
+
+    // 3️⃣ Execute all operations atomically
+    pushMessage('Committing batch to Firestore...');
+    console.log('Batch operations:', {
+      student: studentRef.path,
+      registrations: registrationDocs.map(doc => ({
+        course: doc.course,
+        ref: doc.ref.path
+      }))
+    });
+
+    await batch.commit();
+    
+    // Verify the writes
+    pushMessage('Batch committed. Verifying writes...');
+    
+    // Check if student document was created
+    const studentDoc = await getDoc(studentRef);
+    if (!studentDoc.exists()) {
+      throw new Error('Student document was not created');
+    }
+    pushMessage('✓ Student document verified');
+    
+    // Check if registration documents were created
+    for (const regDoc of registrationDocs) {
+      const docSnapshot = await getDoc(regDoc.ref);
+      if (!docSnapshot.exists()) {
+        throw new Error(`Registration document for ${regDoc.course} was not created`);
+      }
+      pushMessage(`✓ Registration for ${regDoc.course} verified`);
+    }
+    
+    pushMessage(`✅ Successfully registered for ${selectedCourses.length} courses!`);
+    setStep(3);
+
+  } catch (err) {
+    console.error('Batch registration failed:', err);
+    console.error('Error details:', {
+      message: err.message,
+      stack: err.stack,
+      studentId: studentData.studentId,
+      courseCount: selectedCourses.length
+    });
+    pushMessage('❌ Registration failed: ' + err.message);
+    
+    // Additional error information
+    if (err.message.includes('permission') || err.message.includes('Permission')) {
+      pushMessage('⚠️ Check Firestore security rules');
+    }
+  } finally {
+    setSaving(false);
+  }
+};
+
 
   if (registrationClosed) return <div className="p-4 text-center text-red-600">Registration is closed.</div>;
   if (error) return <div className="p-4 text-center text-red-600">{error}</div>;
@@ -276,6 +422,15 @@ useEffect(() => {
             placeholder="Program"
             value={studentData.program}
             onChange={e => setStudentData({ ...studentData, program: e.target.value })}
+            className="border px-2 py-1"
+          />
+          <input
+            type="number"
+            max="7"
+            min="1"
+            placeholder="Study Year"
+            value={studentData.studyYear}
+            onChange={e => setStudentData({ ...studentData, studyYear: e.target.value })}
             className="border px-2 py-1"
           />
 

@@ -67,17 +67,17 @@ const ExamSessionView = () => {
 
     // Helper function to parse '09:00 AM' into a Date
     function parseTimeString(timeStr, refDate) {
-    const [time, period] = timeStr.split(' ');
-    let [hours, minutes] = time.split(':').map(Number);
+      const [time, period] = timeStr.split(' ');
+      let [hours, minutes] = time.split(':').map(Number);
 
-    // Convert 12-hour to 24-hour format
-    if (period === 'PM' && hours !== 12) hours += 12;
-    if (period === 'AM' && hours === 12) hours = 0;
+      // Convert 12-hour to 24-hour format
+      if (period === 'PM' && hours !== 12) hours += 12;
+      if (period === 'AM' && hours === 12) hours = 0;
 
-    // Create a new Date using reference date (but override time)
-    const date = new Date(refDate);
-    date.setHours(hours, minutes, 0, 0);
-    return date;
+      // Create a new Date using reference date (but override time)
+      const date = new Date(refDate);
+      date.setHours(hours, minutes, 0, 0);
+      return date;
     }
 
     /**
