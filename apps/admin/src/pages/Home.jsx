@@ -51,6 +51,21 @@ const Home = () => {
                     type="button"
                     className="w-full mt-6 flex items-center justify-center gap-x-4 btn-primary transition-colors duration-300"
                     disabled={loading} // optional: disables button while loading
+                    onClick={() => {navigate('/registration')}}
+                >
+                    {/* Show loader only if loading is true */}
+                    {loading && <div className="btn-loader"></div>}
+
+                    <div className="flex justify-center items-center gap-x-2">
+                    <p>Student Self-Registration</p>
+                    {/* <ArrowRight className="w-5 h-5 text-gray-50" /> */}
+                    </div>
+                </button>
+            {/* Login button */}
+                <button 
+                    type="button"
+                    className="w-full mt-6 flex items-center justify-center gap-x-4 btn-primary transition-colors duration-300"
+                    disabled={loading} // optional: disables button while loading
                     onClick={() => {handleInvigilatorLogin()}}
                 >
                     {/* Show loader only if loading is true */}
