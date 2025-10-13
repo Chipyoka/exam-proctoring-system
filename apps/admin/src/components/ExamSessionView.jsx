@@ -9,8 +9,9 @@ import AddRoom from './modals/AddRoom';
 import AddAcademicPeriod from './modals/AddAcademicPeriod';
 import AddExamSession from './modals/AddExamSession';
 import AddCourse from './modals/AddCourse';
+import EditExamSession from './modals/EditExamSession';
 
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Edit } from 'lucide-react';
 import StudentCard from './StudentCard';
 
 const ExamSessionView = () => {
@@ -331,6 +332,19 @@ const ExamSessionView = () => {
                     >
                     <PlusCircle className="w-4 h-4 " />
                     exam session
+                </button>
+                <button 
+                    className="btn-primary-outlined-sm flex justify-center items-center gap-2" 
+                    title="Edit new exam session"
+                    onClick={() => openModal('addRoom', {
+                      title: 'Edit Exam Session',
+                      closeOnClickOutside: false,
+                      // width: 'md',
+                      children: <EditExamSession sessionData={sessionData} />
+                    })}
+                    >
+                    <Edit className="w-4 h-4 " />
+                    edit
                 </button>
             </div>
         </div>

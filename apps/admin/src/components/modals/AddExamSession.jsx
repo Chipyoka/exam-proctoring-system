@@ -196,7 +196,9 @@ const handleSaveExamSession = async (e) => {
       setExamDate('');
       setCapacity(0);
       setSelectedCourses([]);
+      window.location.href = '/admin/dashboard';
     }, 5000);
+
   }
 };
 

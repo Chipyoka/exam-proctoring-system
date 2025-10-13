@@ -72,6 +72,15 @@ h4{
 .btn-primary:hover{
   background-color: var(--primary-hover);
 }
+.btn-danger-lg {
+  background-color: var(--red);
+  color: var(--white);
+  padding: 0.75rem 1.75rem;
+  transition: background-color 0.3s ease;
+  text-transform: uppercase;
+  border: 2px solid var(--red);
+  cursor: pointer;
+}
 .btn-danger {
   background-color: var(--red);
   color: var(--white);
