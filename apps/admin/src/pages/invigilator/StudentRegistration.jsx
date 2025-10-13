@@ -570,18 +570,20 @@ return (
     
     <div className="p-4 flex flex-col gap-4">
       {/* Messages Display - Fixed Height with Auto-scroll */}
-      <div className="mx-auto max-w-md w-full">
-        <div className="h-12 overflow-y-auto bg-gray-50 border border-gray-200  p-3 text-sm">
-          {messages.map((m, idx) => (
-            <p key={idx} className="mb-2 last:mb-0 text-center">{m}</p>
-          ))}
-          <div ref={messagesEndRef} />
+        <div className="message-container">
+          <div className="message-box">
+              {messages.map((m, idx) => (
+              <p key={idx} className={`message ${idx === messages.length - 1 ? 'active' : ''}`}>
+                  {m}
+              </p>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
         </div>
-      </div>
 
       {/* Step 1: Face Scan */}
       {step === 1 && (
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-3 ">
           {/* Camera Selection Dropdown */}
           {availableDevices.length > 1 && (
             <div className="w-full max-w-md">
@@ -597,6 +599,11 @@ return (
                   </option>
                 ))}
               </select>
+
+              <div className="mt-2 mx-auto w-full md:max-w-md text-center flex flex-col items-center justify-center">
+                  <p className=" hidden md:block text-xs text-yellow-600 mt-4 font-bold px-4 py-2 bg-yellow-50 w-fit border border-yellow-400 mt-4">You have to select a camera to proceed</p>
+                  <p className="md:hidden text-xs text-yellow-600 mt-4 font-bold px-4 py-2 bg-yellow-50 w-fit border border-yellow-400">You must select a front camera</p>
+              </div>
             </div>
           )}
 
@@ -705,7 +712,7 @@ return (
       {step === 3 && (
         <div className="text-green-600 font-medium text-center max-w-md mx-auto">
           <div className="bg-green-50 border border-green-200  p-6">
-            <p className="text-lg"> Registration completed successfully!</p>
+            <p className="text-lg">Registration completed successfully!</p>
             <button 
               onClick={() => navigate('/')} 
               className="mt-4 btn-primary-sm"

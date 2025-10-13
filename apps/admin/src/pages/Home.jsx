@@ -31,10 +31,10 @@ const Home = () => {
     }
 
   return (
-    <div className="text-gray-500 flex flex-col items-center justify-center w-full max-w-full h-screen bg-[url('../assets/classroom-bg-min.webp')] bg-no-repeat bg-cover bg-center">
+    <div className="text-gray-500 flex flex-col items-center justify-center sm:px-4 w-full max-w-full h-screen bg-[url('../assets/classroom-bg-min.webp')] bg-no-repeat bg-cover bg-center">
       <div className="absolute inset-0 bg-black/40  z-0"></div>
 
-      <div className="bg-white shadow-lg z-10 md:w-md w-sm">
+      <div className="bg-white shadow-lg z-10 md:w-md md:max-w-md w-sm max-w-full mx-4 ">
         <div className="bg-primary flex items-center justify-center p-4 mb-4">
             <img src={Logo} alt="Exam proctoring system" className="h-[33px]" />
         </div>
@@ -53,8 +53,6 @@ const Home = () => {
                     disabled={loading} // optional: disables button while loading
                     onClick={() => {navigate('/registration')}}
                 >
-                    {/* Show loader only if loading is true */}
-                    {loading && <div className="btn-loader"></div>}
 
                     <div className="flex justify-center items-center gap-x-2">
                     <p>Student Self-Registration</p>

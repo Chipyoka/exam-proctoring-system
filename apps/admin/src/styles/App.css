@@ -1,3 +1,4 @@
+@import url('./message.css');
 
 :root{
   --black:#434343;
@@ -109,6 +110,19 @@ h4{
   font-size: .7rem;
 }
 .btn-primary-outlined-sm:hover{
+  border: 2px solid var(--primary-hover);
+}
+.btn-primary-outlined-2{
+  background-color: var(--white01);
+  color: var(--primary);
+  padding: 0.5rem 1.25rem;
+  transition: color 0.3s ease;
+  text-transform: uppercase;
+  border: 2px solid var(--primary);
+  cursor: pointer;
+  font-size: .7rem;
+}
+.btn-primary-outlined-2:hover{
   border: 2px solid var(--primary-hover);
 }
 

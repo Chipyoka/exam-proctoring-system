@@ -65,18 +65,18 @@ const handleLogin = async (e) => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // 👇 Fetch custom claims
+    //  Fetch custom claims
     const idTokenResult = await getIdTokenResult(user);
     const role = idTokenResult.claims.role;
 
-    // 👇 Check if role matches the app
+    //  Check if role matches the app
 
     if (role !== 'invigilator'){
       navigate("/invigilator/unauthorised");
       return;
     }
 
-    // 🔓 Proceed to app
+    //  Proceed to app
     login(user); // set user context
     navigate('/invigilator/home'); // or dashboard route
   } catch (err) {
@@ -94,7 +94,7 @@ const handleLogin = async (e) => {
     <div className="text-gray-500 flex flex-col items-center justify-center w-full max-w-full h-screen bg-[url('../assets/classroom-bg-min.webp')] bg-no-repeat bg-cover bg-center">
       <div className="absolute inset-0 bg-black/40  z-0"></div>
 
-      <div className="bg-white shadow-lg z-10 md:w-md w-sm">
+      <div className="bg-white shadow-lg z-10 md:w-md md:max-w-md w-sm max-w-full">
         <div className="bg-primary flex items-center justify-center p-4 mb-4">
             <img src={Logo} alt="Exam proctoring system" className="h-[33px]" />
         </div>
@@ -112,7 +112,7 @@ const handleLogin = async (e) => {
         <div className="p-8 flex flex-col items-center justify-center">
 
             <h2 className="text-gray-700 text-2xl font-semibold ">Invigilator Login</h2>
-            <p className="text-sm text-gray-500 mb-6 text-center">To continue, provide you login credentials below.</p>
+            <p className="text-sm text-gray-500 mb-6 text-center">To continue, provide your login credentials below.</p>
 
             <form onSubmit={handleLogin} className="w-full">
                 <div className="input-group relative flex items-center border border-gray-300 px-3 py-2 transition-colors duration-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
@@ -169,6 +169,7 @@ const handleLogin = async (e) => {
 
                 {/* <p className="w-full mt-4 text-center">Forgot password? <span className="hyperlink">Reset</span></p> */}
                 <p className="w-full mt-4 text-center">Don't have an account? <span className="hyperlink" onClick={() => navigate('/register')  }>Register</span></p>
+                <div className="mt-4 flex justify-center items-center"> <button onClick={() => navigate('/')} className="btn-primary-outlined-2 w-full">Return Home</button></div>
             </form>
         </div>
 

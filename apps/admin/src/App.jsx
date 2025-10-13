@@ -35,8 +35,8 @@ function App() {
          <Route path="/invigilator/unauthorised" element={<NotAuthorised />} />
          <Route path="/admin/unauthorised" element={<NotAuthorised />} />
 
-
-          <Route path="/" element={<Home />} />
+        <Route path="/" element={<Home />} />
+        
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/admin/dashboard" element={<Dashboard />} />

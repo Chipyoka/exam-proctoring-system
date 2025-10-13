@@ -1,0 +1,50 @@
+/* --- Message Container Layout --- */
+.message-container {
+  max-width: 28rem; /* same as max-w-md */
+  width: 100%;
+  margin: 0 auto;
+}
+
+.message-box {
+  position: relative;
+  height: 4rem; /* same as h-16 */
+  overflow: hidden;
+  background-color: #fafafa; /* gray-50 */
+  border: 1px solid #e5e7eb; /* gray-200 */
+  border-radius: 0.375rem; /* rounded */
+  padding: 0.75rem; /* p-3 */
+  font-size: 0.875rem; /* text-sm */
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* --- Message Animation --- */
+.message {
+  position: absolute;
+  width: 100%;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out;
+  color: #111827; /* gray-900 */
+}
+
+.message.active {
+  opacity: 1;
+  animation: fadeSlide 0.8s ease-in-out;
+}
+
+/* --- Fade & Slide Effect --- */
+@keyframes fadeSlide {
+  from {
+    transform: translateY(20%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(-50%);
+    opacity: 1;
+  }
+}

@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import Logo from '../../assets/eps-white.png'; 
 import { LogOut } from 'lucide-react';
 
-const Home = () => {
+const ScannerHome = () => {
   const { logout } = useAuthStore();
   const [userName, setUserName] = useState("-");
   const [userRole, setUserRole] = useState("-");
@@ -186,19 +186,6 @@ const Home = () => {
               Scan Student
             </button>
 
-            <button
-              disabled={registrationClosed}
-              className={`px-8 py-4 transition-colors duration-300 ${
-                registrationClosed
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-green-500 text-white hover:bg-green-600"
-              }`}
-
-              title={registrationClosed ? "Student registration is closed" : "Register new student"}
-              onClick={() => { if (!registrationClosed) navigate('/register'); }}
-            >
-              Register Student
-            </button>
 
             {registrationClosed && ( 
               <p className=" md:hidden text-yellow-500">Student registration is closed</p>
@@ -210,4 +197,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default ScannerHome;
