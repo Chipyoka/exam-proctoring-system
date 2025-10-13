@@ -78,7 +78,7 @@ const handleLogin = async (e) => {
 
     // 🔓 Proceed to app
     login(user); // set user context
-    navigate('/'); // or dashboard route
+    navigate('/admin/dashboard'); // or dashboard route
   } catch (err) {
     console.error(err.message);
     setMessage({ type: 'error', text: 'Invalid credentials. Please try again.' });

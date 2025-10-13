@@ -8,7 +8,7 @@ import Logo from '../assets/eps-white.png';
 import { LogOut, File } from 'lucide-react';
 
 const navItems = [
-  { label: 'Dashboard', path: '/' },
+  { label: 'Dashboard', path: '/admin/dashboard' },
   { label: 'Students', path: '/admin/dashboard/students' },
   { label: 'Invigilators', path: '/admin/dashboard/invigilators' },
 ];
@@ -38,7 +38,7 @@ const handleLogout = () => {
     setLoading(true);
     setTimeout(() => {
         logout();
-        navigate('/login');
+        navigate('/admin/login');
     }, 3500);
   };
 

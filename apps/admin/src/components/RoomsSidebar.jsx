@@ -109,7 +109,6 @@ const RoomsSidebar = () => {
  * Handle room card clicks
  */
 const handleRoomCardClick = (sessionId) => {
-    alert(`you have clicked ${sessionId}`);
    setSelectedExamSessionId(sessionId);
   };
 
