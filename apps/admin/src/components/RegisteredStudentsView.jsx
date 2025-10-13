@@ -2,10 +2,19 @@ import { useEffect, useState } from 'react';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { firestore } from '../../../../shared/firebase';
 import useCourseStore from '../store/useCourseStore';
-import { Edit, Search } from 'lucide-react';
+
+import useModalStore from '../store/useModalStore';
+
+import Modal from './modals/Modal';
+import AddConfig from './modals/AddConfig';
+import StudentLookup from './modals/StudentLookup';
+
+import { Settings, Search } from 'lucide-react';
 import StudentCard from './StudentCard';
 
+
 const RegisteredStudentsView = () => {
+   const { openModal } = useModalStore();
   // State management
   const { selectedCourseId, clearSelectedCourseId } = useCourseStore();
   const [sessionData, setSessionData] = useState(null);
@@ -205,15 +214,36 @@ const RegisteredStudentsView = () => {
       {/* Header section */}
       <div className="w-full flex justify-between items-center mb-4">
         <div className="flex items-center justify-end gap-4">
-         
-          <button className="btn-primary-sm flex items-center gap-2">
-            <Search className="w-4 h-4" />
-            SMS student lookup
+            <button 
+            className="btn-primary-outlined-sm flex items-center gap-2"
+              title="Configurations"
+              onClick={() => openModal('addCourse', {
+                title: 'SMS Configuration',
+                closeOnClickOutside: false,
+                // width: 'md',
+                children: <AddConfig />
+              })}
+            >
+            <Settings className="w-4 h-4" />
+            
+          </button>
+          <button 
+            className="btn-primary-sm flex items-center gap-2"
+              title="Student lookup"
+              onClick={() => openModal('addCourse', {
+                title: 'SMS Student Lookup',
+                closeOnClickOutside: false,
+                // width: 'md',
+                children: <StudentLookup />
+              })}
+            >
+              <Search className="w-4 h-4" />
+              SMS student lookup
           </button>
         
         </div>
 
-        <div className="w-[70%] max-w-[70%] flex items-center justify-end gap-4">
+        <div className="w-[60%] max-w-[70%] flex items-center justify-end gap-4">
              {/* Search bar */}
             <div className="flex items-center gap-2 w-[70%]">
                 <input
@@ -239,10 +269,7 @@ const RegisteredStudentsView = () => {
                 </button>
                 )}
             </div>
-             <button className="btn-primary-outlined-sm flex items-center gap-2">
-            <Edit className="w-4 h-4" />
-            Edit
-          </button>
+          
         </div>
 
         
@@ -297,6 +324,7 @@ const RegisteredStudentsView = () => {
           </div>
         )}
       </div>
+      <Modal />
     </div>
   );
 };

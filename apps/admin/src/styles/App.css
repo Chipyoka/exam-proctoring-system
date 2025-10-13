@@ -118,6 +118,15 @@ h4{
   cursor: pointer;
   font-size: .7rem;
 }
+.btn-primary-outlined {
+  background-color: var(--white01);
+  color: var(--primary);
+  padding: 0.75rem 1.75rem;
+  transition: color 0.3s ease;
+  text-transform: uppercase;
+  border: 2px solid var(--primary);
+  cursor: pointer;
+}
 .btn-primary-outlined-sm:hover{
   border: 2px solid var(--primary-hover);
 }
