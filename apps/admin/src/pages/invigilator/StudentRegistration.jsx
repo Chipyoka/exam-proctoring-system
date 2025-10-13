@@ -353,7 +353,7 @@ const handleScanFace = async () => {
   }
 };
 
-/** Generate face embedding */
+/** Generate face embedding as array of numbers for Firestore */
 const generateFaceEmbedding = (faceData) => {
   try {
     const safeNumber = (value) => {
@@ -389,14 +389,14 @@ const generateFaceEmbedding = (faceData) => {
       });
     }
 
-    const embeddingString = embeddingArray.join(',');
-    console.log('Generated embedding string length:', embeddingString.length);
-    return embeddingString;
+    console.log('Generated embedding array length:', embeddingArray.length);
+    return embeddingArray; // <--- RETURN THE ARRAY DIRECTLY
   } catch (error) {
     console.error('Error generating embedding:', error);
-    return `fallback_${Date.now()}`;
+    return []; // fallback as empty array
   }
 };
+
 
 /** Save registration */
 const handleSave = async () => {
