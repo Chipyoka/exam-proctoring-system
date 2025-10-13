@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { firestore } from '../../../../shared/firebase';
 import useCourseStore from '../store/useCourseStore';
-import { PlusCircle, Search, Upload } from 'lucide-react';
+import { Edit, Search } from 'lucide-react';
 import StudentCard from './StudentCard';
 
 const RegisteredStudentsView = () => {
@@ -205,20 +205,17 @@ const RegisteredStudentsView = () => {
       {/* Header section */}
       <div className="w-full flex justify-between items-center mb-4">
         <div className="flex items-center justify-end gap-4">
+         
           <button className="btn-primary-sm flex items-center gap-2">
-            <PlusCircle className="w-4 h-4" />
-            register student
-          </button>
-          <button className="btn-primary-outlined-sm flex items-center gap-2">
-            <Upload className="w-4 h-4" />
-            upload file
+            <Search className="w-4 h-4" />
+            SMS student lookup
           </button>
         
         </div>
 
-        <div className="w-[60%] max-w-[60%]">
+        <div className="w-[70%] max-w-[70%] flex items-center justify-end gap-4">
              {/* Search bar */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-[70%]">
                 <input
                 type="text"
                 value={searchInput}
@@ -242,6 +239,10 @@ const RegisteredStudentsView = () => {
                 </button>
                 )}
             </div>
+             <button className="btn-primary-outlined-sm flex items-center gap-2">
+            <Edit className="w-4 h-4" />
+            Edit
+          </button>
         </div>
 
         
@@ -260,7 +261,7 @@ const RegisteredStudentsView = () => {
             </div>
             <div>
                 <p className="text-xs">Exam Date:</p>
-                <p className="font-medium capitalize">{sessionData?.primarySession.date}</p>
+                <p className="font-medium capitalize">{sessionData?.primarySession?.date ?? 'Not Scheduled'}</p>
             </div>
             <div></div>
             <div>
