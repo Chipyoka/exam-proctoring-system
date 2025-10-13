@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import ScannerHome from './pages/invigilator/ScannerHome';
 import Scanner from './pages/invigilator/Scanner';
 import StudentRegistration from './pages/invigilator/StudentRegistration';
+import StudentVerification from './pages/invigilator/StudentVerification';
 import Students from './pages/Students';
 import Invigilators from './pages/Invigilators';
 import InvigilatorLogin from './pages/InvigilatorLogin';
@@ -44,6 +45,7 @@ function App() {
           
           <Route path="/invigilator/scanner" element={<Scanner />} />
           <Route path="/invigilator/home" element={<ScannerHome />} />
+          <Route path="/invigilator/verification" element={<StudentVerification />} />
         </Route>
       </Routes>
     </Router>

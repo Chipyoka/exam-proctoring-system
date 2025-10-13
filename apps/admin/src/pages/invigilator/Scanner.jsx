@@ -10,6 +10,7 @@ import Rooms from '../../components/invigilator/Rooms';
 
 const Scanner = () => {
   const { user, logout } = useAuthStore();
+  const [myUid, setMyUid] = useState(null);
   const [userRole, setUserRole] = useState("-");
   const [userEmail, setUserEmail] = useState("-");
   const [error, setError] = useState(null);
@@ -31,6 +32,7 @@ const Scanner = () => {
       }
 
       setUserEmail(firebaseUser.email);
+        setMyUid(firebaseUser.uid);
       await fetchUserRole(firebaseUser);
     });
 
@@ -133,7 +135,7 @@ const Scanner = () => {
 
       <div className="bg-white shadow-md py-6 px-4 w-full w-full text-center">
       <h2 className="text-2xl font-semibold text-primary">
-        Select room to scan in
+        Assigned Rooms
       </h2>
 
         {error && <p className="text-red-500 mt-3">{error}</p>}
@@ -143,7 +145,7 @@ const Scanner = () => {
         
       </div>
       <div>
-        <Rooms />
+        {myUid && <Rooms uid={myUid} />}
       </div>
     </div>
   );
