@@ -5,8 +5,9 @@ import useModalStore from '../store/useModalStore';
 
 import Modal from './modals/Modal';
 import AssignInvigilator from './modals/AssignInvigilator';
+import UnassignInvigilator from './modals/UnassignInvigilator';
 
-import { Search, PlusCircle } from 'lucide-react';
+import { Search, PlusCircle, MinusCircle } from 'lucide-react';
 
 const InvigilatorsView = () => {
   const [invigilators, setInvigilators] = useState([]);
@@ -196,6 +197,19 @@ const InvigilatorsView = () => {
             >
             <PlusCircle className="w-4 h-4" />
             assign invigilator
+          </button>
+          <button 
+            className="btn-primary-outlined-sm flex items-center gap-2"
+            title="Remove Invigilator"
+            onClick={() => openModal('unassignInvigilator', {
+                title: 'Remove Invigilator',
+                closeOnClickOutside: false,
+                // width: 'md',
+                children: <UnassignInvigilator />
+            })}
+            >
+            <MinusCircle className="w-4 h-4" />
+            Remove invigilator
           </button>
         </div>
 
