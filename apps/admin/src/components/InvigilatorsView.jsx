@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import { collection, query, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { firestore } from '../../../../shared/firebase';
+import useModalStore from '../store/useModalStore';
+
+import Modal from './modals/Modal';
+import AssignInvigilator from './modals/AssignInvigilator';
+
 import { Search, PlusCircle } from 'lucide-react';
 
 const InvigilatorsView = () => {
@@ -10,6 +15,7 @@ const InvigilatorsView = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchInput, setSearchInput] = useState('');
+    const { openModal } = useModalStore();
 
   // Fetch all invigilators from Firestore
   useEffect(() => {
@@ -126,9 +132,7 @@ const InvigilatorsView = () => {
 
     const query = searchInput.trim().toLowerCase();
     const results = invigilators.filter(inv =>
-      inv.firstname?.toLowerCase().includes(query) ||
-      inv.lastname?.toLowerCase().includes(query) ||
-      inv.employeeId?.toLowerCase().includes(query) ||
+      inv.fullname?.toLowerCase().includes(query) ||
       inv.faculty?.toLowerCase().includes(query) ||
       inv.phone?.includes(query)
     );
@@ -180,9 +184,18 @@ const InvigilatorsView = () => {
       {/* Header Bar */}
       <div className="w-full flex justify-between items-center px-4 my-4 border-b border-gray-200 pb-4">
         <div className="flex items-center justify-end gap-4">
-          <button className="btn-primary-sm flex items-center gap-2">
+          <button 
+            className="btn-primary-sm flex items-center gap-2"
+            title="Assign Invigilator"
+            onClick={() => openModal('assignInvigilator', {
+                title: 'Assign Invigilator',
+                closeOnClickOutside: false,
+                // width: 'md',
+                children: <AssignInvigilator />
+            })}
+            >
             <PlusCircle className="w-4 h-4" />
-            add invigilator
+            assign invigilator
           </button>
         </div>
 
@@ -194,7 +207,7 @@ const InvigilatorsView = () => {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Search by name, ID, faculty or phone"
+              placeholder="Search by name, faculty or phone"
               className="flex-1 border border-gray-300 px-3 py-2 text-sm"
             />
             <button
@@ -272,6 +285,8 @@ const InvigilatorsView = () => {
           </div>
         )}
       </div>
+        {/* Render the modal portal once */}
+          <Modal />
     </div>
   );
 };

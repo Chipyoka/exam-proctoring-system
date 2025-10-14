@@ -70,7 +70,6 @@ const handleLogin = async (e) => {
     const role = idTokenResult.claims.role;
 
     //  Check if role matches the app
-
     if (role !== 'invigilator'){
       navigate("/invigilator/unauthorised");
       return;
