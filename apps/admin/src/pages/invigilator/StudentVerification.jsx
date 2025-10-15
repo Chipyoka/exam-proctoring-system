@@ -14,7 +14,7 @@ import { LogOut} from 'lucide-react';
 
 const StudentVerification = () => {
   const sessionId = useScannerStore((state) => state.selectedExamSessionId);
-  const { logout, user } = useAuthStore();
+  const { inviLogout, inviUser } = useAuthStore();
   const navigate = useNavigate();
 
   const messagesEndRef = useRef(null);
@@ -284,9 +284,9 @@ const StudentVerification = () => {
         setAvailableDevices(videoInputs);
 
         // const user = auth.currentUser;
-        if (!user) throw new Error("No logged in user");
+        if (!inviUser) throw new Error("No logged in user");
 
-        const inv = await fetchAssignedInvigilator(sessionId, user.uid);
+        const inv = await fetchAssignedInvigilator(sessionId, inviUser.uid);
         if (!inv) return pushMessage("You are not assigned to this session.");
         setCurrentInvigilator(inv);
         pushMessage("Invigilator verified, preparing scanner...");

@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route,  Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
+import InviProtectedRoute from './components/InviProtectedRoute';
 
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
@@ -42,7 +43,10 @@ function App() {
           <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin/dashboard/students" element={<Students />} />
           <Route path="/admin/dashboard/invigilators" element={<Invigilators />} />
-          
+        </Route>
+
+        {/* invigilator protected routes */}
+        <Route element={<InviProtectedRoute />}>
           <Route path="/invigilator/scanner" element={<Scanner />} />
           <Route path="/invigilator/home" element={<ScannerHome />} />
           <Route path="/invigilator/verification" element={<StudentVerification />} />

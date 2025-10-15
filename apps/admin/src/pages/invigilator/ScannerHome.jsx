@@ -10,7 +10,7 @@ import Logo from '../../assets/eps-white.png';
 import { LogOut } from 'lucide-react';
 
 const ScannerHome = () => {
-  const { logout } = useAuthStore();
+  const { inviLogout } = useAuthStore();
   const [userName, setUserName] = useState("-");
   const [userRole, setUserRole] = useState("-");
   const [isActivated, setIsActivated] = useState(false);
@@ -29,7 +29,7 @@ const ScannerHome = () => {
         setSessionExpired(true);
         setUserName("-");
         setUserRole("-");
-        logout();
+        inviLogout();
         return;
       }
 
@@ -111,7 +111,7 @@ const ScannerHome = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      logout();
+      inviLogout();
     } catch (err) {
       console.error("Logout failed:", err);
       setError("Logout failed. Try again.");

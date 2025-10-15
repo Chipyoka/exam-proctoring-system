@@ -14,7 +14,7 @@ import { Lock } from 'lucide-react';
 
 import Logo from '../assets/eps-white.png'; 
 const Login = () => {
-  const login = useAuthStore((state) => state.login);
+  const login = useAuthStore((state) => state.inviLogin);
   const navigate = useNavigate();
 
 const [email, setEmail] = useState('');

@@ -9,7 +9,7 @@ import { LogOut} from 'lucide-react';
 import Rooms from '../../components/invigilator/Rooms';
 
 const Scanner = () => {
-  const { user, logout } = useAuthStore();
+  const { user, inviLogout } = useAuthStore();
   const [myUid, setMyUid] = useState(null);
   const [userRole, setUserRole] = useState("-");
   const [userEmail, setUserEmail] = useState("-");
@@ -27,7 +27,7 @@ const Scanner = () => {
         setUserEmail("-");
         setUserRole("-");
         setLoading(false);
-        logout(); // Zustand logout
+        inviLogout(); // Zustand logout
         return;
       }
 
@@ -75,7 +75,7 @@ const Scanner = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      logout(); // Zustand logout
+      inviLogout(); // Zustand logout
     } catch (err) {
       console.error("Logout failed:", err);
       setError("Logout failed. Try again.");
