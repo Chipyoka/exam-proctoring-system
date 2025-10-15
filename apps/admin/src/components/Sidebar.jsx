@@ -4,6 +4,11 @@ import { useNavStore } from '../store/navStore';
 import useAuthStore from '../store/authStore';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import useModalStore from '../store/useModalStore';
+
+import Modal from './modals/Modal';
+import GetReport from './modals/GetReport';
+
 import Logo from '../assets/eps-white.png'; 
 import { LogOut, File } from 'lucide-react';
 
@@ -17,6 +22,7 @@ const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { activeTab, setActiveTab } = useNavStore();
+   const { openModal } = useModalStore();
 
   const [loading, setLoading] = useState(false);
 
@@ -66,9 +72,18 @@ const handleLogout = () => {
         <div className="bg-[#2F7392] p-2">
           <p className="font-bold text-white text-lg">Generate Reports</p>
           <p className="text-sm text-white mb-2">
-            Click the button below to generate reports and analytics
+            Click the button below to generate attendance report
           </p>
-          <button className="btn-primary-outlined-sm w-full hover:shadow-sm flex items-center justify-center gap-x-2">
+          <button 
+            className="btn-primary-outlined-sm w-full hover:shadow-sm flex items-center justify-center gap-x-2"
+            title="Generate Reports"
+              onClick={() => openModal('getReport', {
+                title: 'Generate Reports',
+                closeOnClickOutside: false,
+                // width: 'md',
+                children: <GetReport />
+              })}
+            >
             <File className="w-5 h-5 " />
             Generate
           </button>
@@ -88,6 +103,8 @@ const handleLogout = () => {
                     </div>
             </button>
       </div>
+           {/* Render the modal portal once */}
+          <Modal />
     </aside>
   );
 };
