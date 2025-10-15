@@ -168,7 +168,7 @@ const handleLogin = async (e) => {
 
                 {/* <p className="w-full mt-4 text-center">Forgot password? <span className="hyperlink">Reset</span></p> */}
                 <p className="w-full mt-4 text-center">Don't have an account? <span className="hyperlink" onClick={() => navigate('/register')  }>Register</span></p>
-                <div className="mt-4 flex justify-center items-center"> <button onClick={() => navigate('/')} className="btn-primary-outlined-2 w-full">Return Home</button></div>
+                {/* <div className="mt-4 flex justify-center items-center"> <button onClick={() => navigate('/')} className="btn-primary-outlined-2 w-full">Return Home</button></div> */}
             </form>
         </div>
 
