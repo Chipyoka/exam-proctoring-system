@@ -106,7 +106,10 @@ const StudentVerification = () => {
     return assigned ? assigned.data() : null;
   };
 
-  /** Initialize Human.js */
+  /** 
+   * Initialize Human.js the model responsible for facial scan.
+   * powering accurate face detection, embedding extraction, and consistent vector outputs
+   * */
   const initHuman = async () => {
     const humanConfig = {
       backend: 'webgl',
