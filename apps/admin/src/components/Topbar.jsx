@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react';
-import { User } from 'lucide-react';
+import { User, Activity } from 'lucide-react';
 import { useNavStore } from '../store/navStore';
 import dayjs from 'dayjs';
+
+import useModalStore from '../store/useModalStore';
+
+import Modal from './modals/Modal';
+import ViewLiveAlerts from './modals/ViewLiveAlerts';
+
 
 const NAV_TITLES = {
   '/': { title: 'Dashboard', description: 'List of all exam rooms registered' },
@@ -13,10 +19,10 @@ const NAV_TITLES = {
 
 const Topbar = () => {
    
-  const { activeTab } = useNavStore();
+  const { activeTab,isLive} = useNavStore();
   const [time, setTime] = useState(dayjs().format('HH:mm:ss'));
 
-
+ const { openModal } = useModalStore();
   
 
   useEffect(() => {
@@ -55,10 +61,37 @@ const userEmail = getFirebaseEmail();
       </div>
 
       <div className="flex items-center gap-x-2">
+        {/* date and time */}
         <div className="text-sm text-gray-600 border-r-2 border-gray-200 pr-4 mr-4">
             <p className="text-xs text-gray-400">Date & Time</p>
           {dayjs().format('MMM DD, YYYY')} | <span className="font-medium">{time}</span>
         </div>
+
+        {/* live stream alerts */}
+
+        <div className="text-sm text-gray-600 border-r-2 border-gray-200 pr-4 mr-4">
+            <div 
+                onClick={() => openModal('viewLiveAlerts', {
+                      title: 'Alerts Stream',
+                      closeOnClickOutside: false,
+                      // width: 'md',
+                      children: <ViewLiveAlerts />
+                    })}
+              className={isLive ? `p-2 bg-green-100 text-green-500 flex items-center justify-center cursor-pointer`: `p-2 bg-gray-100 flex items-center justify-center cursor-pointer`}
+            >
+              <Activity className="w-5 h-5" />
+              <span className="font-medium text-xs ml-2">
+                {isLive ? "View live alerts" : "Alerts Off"}
+              </span>
+
+            <div>
+
+            </div>
+          </div>
+
+        </div>
+
+        {/* admin user */}
         <div className="flex items-center gap-x-2 text-gray-600  ">
             <div className="p-2 bg-gray-100 flex items-center justify-center">
                  <User className="w-5 h-5 " />
@@ -69,6 +102,8 @@ const userEmail = getFirebaseEmail();
             </div>
         </div>
       </div>
+      {/* Render the modal portal once */}
+          {/* <Modal /> */}
     </div>
   );
 };

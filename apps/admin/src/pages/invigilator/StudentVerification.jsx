@@ -436,7 +436,7 @@ const stopScanner = () => {
         {/* 🎥 Camera selection dropdown */}
         {!selectedDeviceId &&(
             <div>
-                <p className=" hidden md:block text-xs text-yellow-600 mt-4 font-bold px-4 py-2 bg-yellow-50 w-fit border border-yellow-400 mt-4">You have to select a camera to proceed</p>
+                <p className=" hidden md:block text-xs text-yellow-600 font-bold px-4 py-2 bg-yellow-50 w-fit border border-yellow-400 mt-4">You have to select a camera to proceed</p>
                 <p className="md:hidden text-xs text-yellow-600 mt-4 font-bold px-4 py-2 bg-yellow-50 w-fit border border-yellow-400">You must select a back camera</p>
             </div>
         )}
