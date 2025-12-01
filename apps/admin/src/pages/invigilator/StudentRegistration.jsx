@@ -508,14 +508,7 @@ const handleSave = async () => {
   }
 };
 
-if(loading) return (
-  <div className="flex flex-col items-center justify-center h-screen text-gray-700">
-    <div className="p-4 flex flex-col justify-center items-center h-full mt-6">
-      <div className="loader"></div>
-      <p className="mt-4">Loading Scanner...</p>
-    </div>
-  </div>
-);
+
 
 if (!activePeriod) return (
   <>
@@ -548,6 +541,15 @@ if (registrationClosed) return (
       <p onClick={() => navigate('/')} className="hyperlink text-center">Return home</p>
     </div>
   </>
+);
+
+if(loading) return (
+  <div className="flex flex-col items-center justify-center h-screen text-gray-700">
+    <div className="p-4 flex flex-col justify-center items-center h-full mt-6">
+      <div className="loader"></div>
+      <p className="mt-4">Loading Scanner...</p>
+    </div>
+  </div>
 );
 
 if (error) return <div className="p-4 text-center text-red-600">{error}</div>;

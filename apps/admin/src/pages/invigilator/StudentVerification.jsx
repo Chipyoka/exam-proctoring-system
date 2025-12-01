@@ -30,6 +30,8 @@ const StudentVerification = () => {
   const [selectedCamera, setSelectedCamera] = useState(null);
 
   const [verificationPopup, setVerificationPopup] = useState(null);
+  const [cameraReady, setCameraReady] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
 
   // 🎥 Camera states
   const [availableDevices, setAvailableDevices] = useState([]);
@@ -186,9 +188,9 @@ const StudentVerification = () => {
   };
 
   /** Show popup for success or failure */
-  const showVerificationPopup = (type, student = null, onNext = null) => {
+  const showVerificationPopup = (type, student = null) => {
     setVerificationPopup(
-      <div className="fixed inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black/50 bg-opacity-70 flex flex-col items-center justify-center z-50">
         <div className={`bg-white rounded-lg p-6 text-center w-80 ${type === 'failure' ? 'border-4 border-red-500' : 'border-4 border-green-500'}`}>
           <h2 className="text-xl font-bold mb-2">{type === 'success' ? 'Student Verified' : 'Verification Failed'}</h2>
           {student ? (
@@ -201,77 +203,196 @@ const StudentVerification = () => {
             <p className="text-red-600 font-semibold">Face did not match registered student</p>
           )}
           <button
-            onClick={() => { setVerificationPopup(null); if(onNext) onNext(); }}
+            onClick={() => { 
+              setVerificationPopup(null); 
+              setCameraReady(true); // Keep camera ready for next student
+            }}
             className={`mt-4 px-4 py-2 rounded text-white ${type === 'success' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
           >
-            Next
+            Close
           </button>
         </div>
       </div>
     );
   };
 
-  /** Scan and verify */
-  const scanAndVerify = async (attemptStudentId = null) => {
-    if (!human) return pushMessage("Human.js not initialized");
-    if (!selectedDeviceId) return pushMessage("Please select a camera before scanning.");
+  /** Start camera only - no scanning yet */
+  const startCamera = async () => {
+    if (!selectedDeviceId) {
+      pushMessage("Please select a camera first");
+      return;
+    }
 
     try {
-      // Start selected camera
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: { exact: selectedDeviceId } }
-      });
-      videoRef.current.srcObject = stream;
-      await new Promise(res => (videoRef.current.onloadedmetadata = res));
-      await videoRef.current.play();
-
-      // Detect face
-      const result = await human.detect(videoRef.current);
-      if (!result.face?.length) return pushMessage("No face detected");
-
-      const newEmbedding = result.face[0].embedding;
-      let bestMatch = { score: 0, student: null };
-
-      let studentsToCompare = students;
-      if (attemptStudentId) {
-        studentsToCompare = students.filter(s => s.id === attemptStudentId);
-        if (!studentsToCompare.length) {
-          pushMessage(`Student ID not found`);
-          await logVerification({ studentId: attemptStudentId, scannedBy: auth.currentUser.uid, result: 'failure' });
-          showVerificationPopup('failure');
-          return;
-        }
-      }
-
-      studentsToCompare.forEach(student => {
-        if (!student.embedding || !Array.isArray(student.embedding)) return;
-        const score = compareEmbeddings(newEmbedding.slice(0, 60), student.embedding);
-        if (score > bestMatch.score) bestMatch = { score, student };
-      });
-
-      const scannedBy = auth.currentUser?.uid;
-
-      if (bestMatch.score >= 0.45) {
-        await updateDoc(doc(firestore, 'students', bestMatch.student.id), { isVerified: true });
-        await logVerification({ studentId: bestMatch.student.id, scannedBy, result: 'success' });
-        showVerificationPopup('success', bestMatch.student, () => scanAndVerify());
-      } else {
-        if (!attemptStudentId) {
-          const inputId = prompt("Face not recognized. Enter Student ID for second attempt:");
-          if (inputId) return scanAndVerify(inputId);
-        }
-        await logVerification({ studentId: attemptStudentId || 'unknown', scannedBy, result: 'failure' });
-        showVerificationPopup('failure');
-      }
-
-    } catch (err) {
-      console.error("Scan error:", err);
-      pushMessage(`Scan failed: ${err.message}`);
-    } finally {
+      pushMessage("Starting camera...");
+      
+      // Stop any existing camera stream
       if (videoRef.current?.srcObject) {
         videoRef.current.srcObject.getTracks().forEach(track => track.stop());
         videoRef.current.srcObject = null;
       }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: { exact: selectedDeviceId } }
+      });
+      
+      videoRef.current.srcObject = stream;
+      await new Promise(res => (videoRef.current.onloadedmetadata = res));
+      await videoRef.current.play();
+      
+      setCameraReady(true);
+      pushMessage("Camera ready - position student and click 'Detect Face'");
+      
+    } catch (err) {
+      console.error("Camera error:", err);
+      pushMessage(`Camera failed to start: ${err.message}`);
+      setCameraReady(false);
+    }
+  };
+
+  /** Detect face with smart retries - NO AUTO LOGGING ON FAILURE */
+  const detectFaceWithRetry = async (retryCount = 0) => {
+    if (!human) {
+      pushMessage("Human.js not initialized");
+      return null;
+    }
+    if (!cameraReady) {
+      pushMessage("Camera not ready");
+      return null;
+    }
+    
+    setIsScanning(true);
+    pushMessage(retryCount === 0 ? "Detecting face..." : `Retrying detection... (${retryCount}/2)`);
+
+    try {
+      const result = await human.detect(videoRef.current);
+      
+      if (!result.face?.length) {
+        if (retryCount < 2) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return detectFaceWithRetry(retryCount + 1);
+        } else {
+          pushMessage("No face detected after 3 attempts");
+          return null;
+        }
+      }
+
+      pushMessage("Face detected - processing...");
+      return result.face[0].embedding;
+      
+    } catch (err) {
+      console.error("Detection error:", err);
+      pushMessage(`Detection failed: ${err.message}`);
+      return null;
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  /** Manual ID fallback with proper failure logging */
+  const handleManualIdFallback = async () => {
+    const inputId = prompt("Face not recognized. Enter Student ID for manual verification:");
+    
+    if (!inputId) {
+      pushMessage("Manual verification cancelled");
+      return;
+    }
+
+    pushMessage(`Manual ID entered: ${inputId}`);
+    
+    // Find student by ID
+    const student = students.find(s => s.id === inputId);
+    if (!student) {
+      pushMessage(`Student ID ${inputId} not found in registered students`);
+      // LOG FAILURE - manual ID failed
+      await logVerification({ 
+        studentId: inputId, 
+        scannedBy: auth.currentUser.uid, 
+        result: 'failure' 
+      });
+      showVerificationPopup('failure');
+      return;
+    }
+
+    // Try face detection again with specific student
+    pushMessage("Verifying face against manual ID...");
+    const embedding = await detectFaceWithRetry();
+    
+    if (!embedding) {
+      pushMessage("Could not detect face for manual verification");
+      // LOG FAILURE - face detection failed after manual ID
+      await logVerification({ 
+        studentId: inputId, 
+        scannedBy: auth.currentUser.uid, 
+        result: 'failure' 
+      });
+      showVerificationPopup('failure');
+      return;
+    }
+
+    // Compare with specific student's embedding
+    if (!student.embedding || !Array.isArray(student.embedding)) {
+      pushMessage("No facial data available for this student");
+      // LOG FAILURE - no embedding data
+      await logVerification({ 
+        studentId: inputId, 
+        scannedBy: auth.currentUser.uid, 
+        result: 'failure' 
+      });
+      showVerificationPopup('failure');
+      return;
+    }
+
+    const score = compareEmbeddings(embedding.slice(0, 60), student.embedding);
+    const scannedBy = auth.currentUser?.uid;
+
+    if (score >= 0.45) {
+      await updateDoc(doc(firestore, 'students', student.id), { isVerified: true });
+      await logVerification({ studentId: student.id, scannedBy, result: 'success' });
+      showVerificationPopup('success', student);
+    } else {
+      pushMessage(`Face match score too low: ${score.toFixed(3)}`);
+      // LOG FAILURE - face doesn't match manual ID
+      await logVerification({ 
+        studentId: inputId, 
+        scannedBy: auth.currentUser.uid, 
+        result: 'failure' 
+      });
+      showVerificationPopup('failure');
+    }
+  };
+
+  /** Main detection and verification flow */
+  const detectAndVerify = async () => {
+    // Step 1: Detect face with retries
+    const embedding = await detectFaceWithRetry();
+    
+    if (!embedding) {
+      // Face detection failed - offer manual ID input
+      await handleManualIdFallback();
+      return;
+    }
+
+    // Step 2: Find best match among all students
+    let bestMatch = { score: 0, student: null };
+    
+    students.forEach(student => {
+      if (!student.embedding || !Array.isArray(student.embedding)) return;
+      const score = compareEmbeddings(embedding.slice(0, 60), student.embedding);
+      if (score > bestMatch.score) bestMatch = { score, student };
+    });
+
+    const scannedBy = auth.currentUser?.uid;
+
+    // Step 3: Handle verification result
+    if (bestMatch.score >= 0.45) {
+      await updateDoc(doc(firestore, 'students', bestMatch.student.id), { isVerified: true });
+      await logVerification({ studentId: bestMatch.student.id, scannedBy, result: 'success' });
+      showVerificationPopup('success', bestMatch.student);
+    } else {
+      pushMessage(`Best match score too low: ${bestMatch.score.toFixed(3)}`);
+      // Face detection succeeded but no good match - offer manual ID
+      await handleManualIdFallback();
     }
   };
 
@@ -286,7 +407,6 @@ const StudentVerification = () => {
         const videoInputs = devices.filter(d => d.kind === 'videoinput');
         setAvailableDevices(videoInputs);
 
-        // const user = auth.currentUser;
         if (!inviUser) throw new Error("No logged in user");
 
         const inv = await fetchAssignedInvigilator(sessionId, inviUser.uid);
@@ -311,65 +431,58 @@ const StudentVerification = () => {
     return () => window.removeEventListener('online', syncStagedData);
   }, []);
 
-  /** Restart scanner (stop and reinitialize camera feed) */
-const restartScanner = async () => {
-  try {
-    pushMessage("Restarting scanner...");
+  /** Restart scanner */
+  const restartScanner = async () => {
+    try {
+      pushMessage("Restarting scanner...");
+      setCameraReady(false);
+      setIsScanning(false);
 
-    // Stop any existing camera stream
-    if (videoRef.current?.srcObject) {
-      videoRef.current.srcObject.getTracks().forEach(track => track.stop());
-      videoRef.current.srcObject = null;
+      // Stop any existing camera stream
+      if (videoRef.current?.srcObject) {
+        videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+        videoRef.current.srcObject = null;
+      }
+
+      await startCamera();
+      
+    } catch (err) {
+      console.error("Restart scanner failed:", err);
+      pushMessage(`Failed to restart scanner: ${err.message}`);
     }
+  };
 
-    // Request the same camera device again if user selected one
-    const selectedCameraId = selectedCamera; // assuming you used selectedCamera state from camera selector
-    const constraints = selectedCameraId
-      ? { video: { deviceId: { exact: selectedCameraId } } }
-      : { video: true };
+  /** Stop scanner and return to scanner selection screen */
+  const stopScanner = () => {
+    try {
+      pushMessage("Stopping scanner...");
 
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    videoRef.current.srcObject = stream;
+      // Stop any running camera stream
+      if (videoRef.current?.srcObject) {
+        videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+        videoRef.current.srcObject = null;
+      }
 
-    await new Promise((resolve) => {
-      videoRef.current.onloadedmetadata = () => {
-        videoRef.current.play();
-        resolve();
-      };
-    });
+      // Reset states
+      setVerificationPopup(null);
+      setMessages([]);
+      setStudents([]);
+      setCameraReady(false);
+      setIsScanning(false);
 
-    pushMessage("Scanner restarted successfully.");
-  } catch (err) {
-    console.error("Restart scanner failed:", err);
-    pushMessage(`Failed to restart scanner: ${err.message}`);
-  }
-};
-
-/** Stop scanner and return to scanner selection screen */
-const stopScanner = () => {
-  try {
-    pushMessage("Stopping scanner...");
-
-    // Stop any running camera stream
-    if (videoRef.current?.srcObject) {
-      videoRef.current.srcObject.getTracks().forEach(track => track.stop());
-      videoRef.current.srcObject = null;
+      // Navigate back to main scanner page
+      navigate('/invigilator/scanner');
+    } catch (err) {
+      console.error("Error stopping scanner:", err);
+      pushMessage(`Failed to stop scanner: ${err.message}`);
     }
+  };
 
-    // Optional: reset states if needed
-    setVerificationPopup(null);
-    setMessages([]);
-    setStudents([]);
-
-    // Navigate back to main scanner page
-    navigate('/invigilator/scanner');
-  } catch (err) {
-    console.error("Error stopping scanner:", err);
-    pushMessage(`Failed to stop scanner: ${err.message}`);
-  }
-};
-
-
+  /** Handle camera selection change */
+  const handleCameraChange = (deviceId) => {
+    setSelectedDeviceId(deviceId);
+    setCameraReady(false); // Reset camera ready state when camera changes
+  };
 
   /** UI */
   if (!sessionId) return (
@@ -389,40 +502,38 @@ const stopScanner = () => {
 
   return (
     <div className="flex flex-col items-center justify-start h-screen bg-gray-100 p-4">
-              <div className="bg-primary flex items-start justify-between p-4 mb-4 w-full">
-            <img src={Logo} alt="Exam proctoring system" className="h-[33px]" />
-            <button
-                 onClick={() => {stopScanner()}}
-                className="w-28 mb-2 py-2 flex items-center justify-center gap-x-4 bg-red-400 text-gray-50 hover:bg-[#FF5252] transition-colors duration-300"
-            >
+      <div className="bg-primary flex items-start justify-between p-4 mb-4 w-full">
+        <img src={Logo} alt="Exam proctoring system" className="h-[33px]" />
+        <button
+          onClick={stopScanner}
+          className="w-28 mb-2 py-2 flex items-center justify-center gap-x-4 bg-red-400 text-gray-50 hover:bg-[#FF5252] transition-colors duration-300"
+        >
+          <div className="flex justify-center items-center gap-x-2">
+            <p>Stop Scanner</p>
+          </div>
+        </button>
+      </div>
 
-             <div className="flex justify-center items-center gap-x-2">
-                    <p>Stop Scanner</p>
-            </div>
-            </button>
-        </div>
+      <div className="flex flex-col md:flex-row justify-center mt-4 p-4 gap-4">
+        <button
+          onClick={restartScanner}
+          className="btn-primary-outlined-2 transition-colors duration-300"
+        >
+          Restart Scanner
+        </button>
+      </div>
 
-        <div className="flex flex-col md:flex-row justify-center mt-4 p-4">
-            <button
-            onClick={()=>{restartScanner()}}
-            className="btn-primary-outlined-2 transition-colors duration-300"
-            
-            >
-                Restart Scanner
-            </button>
+      {/* push messages */}
+      <div className="message-container">
+        <div className="message-box">
+          {messages.map((m, idx) => (
+            <p key={idx} className={`message ${idx === messages.length - 1 ? 'active' : ''}`}>
+              {m}
+            </p>
+          ))}
+          <div ref={messagesEndRef} />
         </div>
-
-        {/* push messages */}
-        <div className="message-container">
-            <div className="message-box">
-                {messages.map((m, idx) => (
-                <p key={idx} className={`message ${idx === messages.length - 1 ? 'active' : ''}`}>
-                    {m}
-                </p>
-                ))}
-                <div ref={messagesEndRef} />
-            </div>
-        </div>
+      </div>
 
       {syncing && (
         <div className="w-full max-w-md bg-gray-200 rounded-full h-2.5 mt-3">
@@ -431,19 +542,27 @@ const stopScanner = () => {
       )}
 
       <div className="mt-6 flex flex-col items-center">
-        <video ref={videoRef} className="w-[360px] h-[260px] bg-black rounded-xl shadow-md"></video>
+        <video 
+          ref={videoRef} 
+          className="w-[360px] h-[260px] bg-black rounded-xl shadow-md"
+        ></video>
 
         {/* 🎥 Camera selection dropdown */}
-        {!selectedDeviceId &&(
-            <div>
-                <p className=" hidden md:block text-xs text-yellow-600 font-bold px-4 py-2 bg-yellow-50 w-fit border border-yellow-400 mt-4">You have to select a camera to proceed</p>
-                <p className="md:hidden text-xs text-yellow-600 mt-4 font-bold px-4 py-2 bg-yellow-50 w-fit border border-yellow-400">You must select a back camera</p>
-            </div>
+        {!selectedDeviceId && (
+          <div>
+            <p className="hidden md:block text-xs text-yellow-600 font-bold px-4 py-2 bg-yellow-50 w-fit border border-yellow-400 mt-4">
+              You have to select a camera to proceed
+            </p>
+            <p className="md:hidden text-xs text-yellow-600 mt-4 font-bold px-4 py-2 bg-yellow-50 w-fit border border-yellow-400">
+              You must select a back camera
+            </p>
+          </div>
         )}
+        
         <select
           className="mt-4 border border-gray-300 px-6 py-4 text-sm w-full md:max-w-md"
           value={selectedDeviceId}
-          onChange={e => setSelectedDeviceId(e.target.value)}
+          onChange={e => handleCameraChange(e.target.value)}
         >
           <option value="">-- Select Camera --</option>
           {availableDevices.map((device, i) => (
@@ -453,13 +572,26 @@ const stopScanner = () => {
           ))}
         </select>
 
-        <button
-          onClick={() => scanAndVerify()}
-          disabled={!selectedDeviceId}
-          className={`mt-4 transition ${selectedDeviceId ? 'btn-primary' : ' hidden'}`}
-        >
-          Scan Face
-        </button>
+        {/* Two-button approach */}
+        <div className="flex flex-col gap-2 mt-4 w-full md:max-w-md">
+          {!cameraReady ? (
+            <button
+              onClick={startCamera}
+              disabled={!selectedDeviceId || isScanning}
+              className={`btn-primary ${!selectedDeviceId ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              Start Camera
+            </button>
+          ) : (
+            <button
+              onClick={detectAndVerify}
+              disabled={isScanning}
+              className={`btn-primary ${isScanning ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {isScanning ? 'Scanning...' : 'Detect Face'}
+            </button>
+          )}
+        </div>
       </div>
 
       {verificationPopup}
