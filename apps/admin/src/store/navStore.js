@@ -12,7 +12,6 @@ export const useNavStore = create(
     }),
     {
       name: 'nav-storage', // localStorage key
-      partialize: (state) => ({ activeTab: state.activeTab }), // only store activeTab
     }
   )
 );

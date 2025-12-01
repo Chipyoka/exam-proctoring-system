@@ -58,9 +58,35 @@ const StudentVerification = () => {
     return sessionSnap.data();
   };
 
-  /** Fetch registered students */
+  /** Fetch registered students with academic period check */
   const fetchRegisteredStudents = async (sessionId) => {
     try {
+      // Get session to find its academic period
+      const sessionDoc = await getDoc(doc(firestore, 'examSessions', sessionId));
+      if (!sessionDoc.exists()) {
+        pushMessage("Session not found");
+        return [];
+      }
+
+      const sessionData = sessionDoc.data();
+      const academicPeriodRef = sessionData.academicPeriod;
+      
+      if (!academicPeriodRef) {
+        pushMessage("Session has no academic period assigned");
+        return [];
+      }
+
+      // Get academic period ID for querying
+      let academicPeriodId;
+      if (typeof academicPeriodRef === 'string') {
+        academicPeriodId = academicPeriodRef.split('/').pop();
+      } else if (academicPeriodRef.id) {
+        academicPeriodId = academicPeriodRef.id;
+      } else {
+        pushMessage("Invalid academic period reference");
+        return [];
+      }
+
       const escSnap = await getDocs(
         query(
           collection(firestore, "examSessionCourses"),
@@ -74,10 +100,12 @@ const StudentVerification = () => {
         return [];
       }
 
+      // Get students registered for this academic period and courses
       const studentSnap = await getDocs(
         query(
           collection(firestore, "studentCourseRegistrations"),
-          where("course", "in", courseRefs)
+          where("course", "in", courseRefs),
+          where("academicPeriodId", "==", academicPeriodId)
         )
       );
 
@@ -85,9 +113,17 @@ const StudentVerification = () => {
       for (const docSnap of studentSnap.docs) {
         const studentRef = docSnap.data().student;
         const studentDoc = await getDoc(studentRef);
-        if (studentDoc.exists()) students.push({ id: studentDoc.id, ...studentDoc.data() });
+        if (studentDoc.exists()) {
+          const studentData = studentDoc.data();
+          students.push({ 
+            id: studentDoc.id, 
+            ...studentData,
+            // Add registration context
+            isRegisteredForPeriod: true
+          });
+        }
       }
-
+      console.log("TT", students);
       return students;
     } catch (err) {
       console.error("Error fetching registered students:", err);
@@ -188,26 +224,35 @@ const StudentVerification = () => {
   };
 
   /** Show popup for success or failure */
-  const showVerificationPopup = (type, student = null) => {
+  const showVerificationPopup = (type, student = null, message = null) => {
     setVerificationPopup(
       <div className="fixed inset-0 bg-black/50 bg-opacity-70 flex flex-col items-center justify-center z-50">
-        <div className={`bg-white rounded-lg p-6 text-center w-80 ${type === 'failure' ? 'border-4 border-red-500' : 'border-4 border-green-500'}`}>
-          <h2 className="text-xl font-bold mb-2">{type === 'success' ? 'Student Verified' : 'Verification Failed'}</h2>
+        <div className={`bg-white rounded-lg p-6 text-center w-80 ${type === 'failure' ? 'border-4 border-red-500' : type === 'success' ? 'border-4 border-green-500' : 'border-4 border-blue-500'}`}>
+          <h2 className="text-xl font-bold mb-2">
+            {type === 'success' ? 'Student Verified' : 
+             type === 'failure' ? 'Verification Failed' : 
+             'Already Verified'}
+          </h2>
           {student ? (
             <>
               <p><strong>ID:</strong> {student.id}</p>
               <p><strong>Name:</strong> {student.lastname} {student.firstname}</p>
               <p><strong>Program:</strong> {student.program}</p>
+              {message && <p className="text-blue-600 font-semibold mt-2">{message}</p>}
             </>
           ) : (
-            <p className="text-red-600 font-semibold">Face did not match registered student</p>
+            <p className="text-red-600 font-semibold">{message || 'Face did not match registered student'}</p>
           )}
           <button
             onClick={() => { 
               setVerificationPopup(null); 
               setCameraReady(true); // Keep camera ready for next student
             }}
-            className={`mt-4 px-4 py-2 rounded text-white ${type === 'success' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
+            className={`mt-4 px-4 py-2 rounded text-white ${
+              type === 'success' ? 'bg-green-600 hover:bg-green-700' : 
+              type === 'failure' ? 'bg-red-600 hover:bg-red-700' : 
+              'bg-blue-600 hover:bg-blue-700'
+            }`}
           >
             Close
           </button>
@@ -310,7 +355,14 @@ const StudentVerification = () => {
         scannedBy: auth.currentUser.uid, 
         result: 'failure' 
       });
-      showVerificationPopup('failure');
+      showVerificationPopup('failure', null, 'Student not registered for this academic period');
+      return;
+    }
+
+    // ✅ Check if student is already verified
+    if (student.isVerified) {
+      pushMessage(`Student ${student.id} is already verified`);
+      showVerificationPopup('info', student, 'Student is already verified - no action needed');
       return;
     }
 
@@ -386,7 +438,19 @@ const StudentVerification = () => {
 
     // Step 3: Handle verification result
     if (bestMatch.score >= 0.45) {
-      await updateDoc(doc(firestore, 'students', bestMatch.student.id), { isVerified: true });
+      // ✅ Check if student is already verified
+      if (bestMatch.student.isVerified) {
+        pushMessage(`Student ${bestMatch.student.id} is already verified`);
+        showVerificationPopup('info', bestMatch.student, 'Student is already verified - no action needed');
+        return; // Don't log or update - just show info
+      }
+
+      // Student is not verified yet - proceed with verification
+      await updateDoc(doc(firestore, 'students', bestMatch.student.id), { 
+        isVerified: true,
+        lastVerifiedAt: new Date(),
+        verifiedBy: scannedBy
+      });
       await logVerification({ studentId: bestMatch.student.id, scannedBy, result: 'success' });
       showVerificationPopup('success', bestMatch.student);
     } else {
@@ -417,7 +481,7 @@ const StudentVerification = () => {
         await fetchSessionData(sessionId);
         const regs = await fetchRegisteredStudents(sessionId);
         setStudents(regs);
-        pushMessage(`Loaded ${regs.length} registered students`);
+        pushMessage(`Loaded ${regs.length} registered students for this academic period`);
 
         setLoading(false);
       } catch (err) {

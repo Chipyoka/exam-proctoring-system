@@ -52,7 +52,6 @@ return openDB('studentRegistration', 1, {
 });
 };
 
-
 /** Helper for updating UI messages */
 const pushMessage = (msg) => {
   setMessages(prev => [...prev, msg]);
@@ -397,7 +396,6 @@ const generateFaceEmbedding = (faceData) => {
   }
 };
 
-
 /** Save registration */
 const handleSave = async () => {
   setSaving(true);
@@ -426,9 +424,12 @@ const handleSave = async () => {
       lastname: studentData.lastname,
       program: studentData.program,
       studyYear: studentData.studyYear,
-      isVerified: studentData.isVerified ?? false,
-      embedding: studentData.embedding || "",
+      isVerified: false, // ✅ Always false on new registration
+      embedding: studentData.embedding || [],
       createdAt: new Date().toISOString(),
+      // ✅ Add period context to student document
+      currentAcademicPeriod: doc(firestore, 'academicPeriod', activePeriod.id),
+      lastRegistrationDate: new Date().toISOString(),
     };
     
     console.log('Saving student data:', studentDataToSave);
@@ -441,12 +442,15 @@ const handleSave = async () => {
       try {
         const regRef = doc(collection(firestore, 'studentCourseRegistrations'));
         const courseRef = doc(firestore, 'courses', course.id);
+        const academicPeriodRef = doc(firestore, 'academicPeriod', activePeriod.id);
         
         const registrationData = {
           student: studentRef,
           course: courseRef,
+          academicPeriod: academicPeriodRef, // ✅ ADD ACADEMIC PERIOD REFERENCE
           studentId: studentData.studentId,
           courseId: course.id,
+          academicPeriodId: activePeriod.id, // ✅ ADD FOR EASIER QUERYING
           registeredAt: new Date().toISOString(),
         };
         
@@ -487,7 +491,7 @@ const handleSave = async () => {
       console.log(`✓ Registration for ${regDoc.course} verified`);
     }
     
-    pushMessage(` Successfully registered for ${selectedCourses.length} courses!`);
+    pushMessage(` Successfully registered for ${selectedCourses.length} courses in ${activePeriod.name}!`);
     setStep(3);
 
   } catch (err) {
@@ -508,7 +512,14 @@ const handleSave = async () => {
   }
 };
 
-
+if(loading) return (
+  <div className="flex flex-col items-center justify-center h-screen text-gray-700">
+    <div className="p-4 flex flex-col justify-center items-center h-full mt-6">
+      <div className="loader"></div>
+      <p className="mt-4">Loading Scanner...</p>
+    </div>
+  </div>
+);
 
 if (!activePeriod) return (
   <>
@@ -541,15 +552,6 @@ if (registrationClosed) return (
       <p onClick={() => navigate('/')} className="hyperlink text-center">Return home</p>
     </div>
   </>
-);
-
-if(loading) return (
-  <div className="flex flex-col items-center justify-center h-screen text-gray-700">
-    <div className="p-4 flex flex-col justify-center items-center h-full mt-6">
-      <div className="loader"></div>
-      <p className="mt-4">Loading Scanner...</p>
-    </div>
-  </div>
 );
 
 if (error) return <div className="p-4 text-center text-red-600">{error}</div>;
@@ -715,6 +717,9 @@ return (
         <div className="text-green-600 font-medium text-center max-w-md mx-auto">
           <div className="bg-green-50 border border-green-200  p-6">
             <p className="text-lg">Registration completed successfully!</p>
+            <p className="text-sm text-gray-600 mt-2">
+              You are now registered for {activePeriod.name}
+            </p>
             <button 
               onClick={() => navigate('/')} 
               className="mt-4 btn-primary-sm"
