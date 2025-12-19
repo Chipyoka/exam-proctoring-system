@@ -335,6 +335,7 @@ const handleScanFace = async () => {
     }
 
     const embedding = generateFaceEmbedding(result.face[0]);
+    console.log('Generated face embedding:', embedding);
     
     setStudentData(prev => ({
       ...prev,
@@ -352,8 +353,9 @@ const handleScanFace = async () => {
   }
 };
 
-/** Generate face embedding as array of numbers for Firestore */
-const generateFaceEmbedding = (faceData) => {
+
+/** Generate face embedding as array of numbers for Firestore (fixed length 60, unit normalized) */
+const generateFaceEmbedding = (faceData, targetLength = 60) => {
   try {
     const safeNumber = (value) => {
       if (typeof value === 'number') return Number(value.toFixed(6));
@@ -373,9 +375,7 @@ const generateFaceEmbedding = (faceData) => {
     ];
 
     if (faceData.emotion && typeof faceData.emotion === 'object') {
-      Object.values(faceData.emotion).forEach(score => {
-        embeddingArray.push(safeNumber(score));
-      });
+      Object.values(faceData.emotion).forEach(score => embeddingArray.push(safeNumber(score)));
     }
 
     if (faceData.mesh && Array.isArray(faceData.mesh)) {
@@ -388,13 +388,23 @@ const generateFaceEmbedding = (faceData) => {
       });
     }
 
-    console.log('Generated embedding array length:', embeddingArray.length);
-    return embeddingArray; // <--- RETURN THE ARRAY DIRECTLY
+    // --- Normalize to fixed length ---
+    const normalized = embeddingArray.slice(0, targetLength); // truncate if too long
+    while (normalized.length < targetLength) normalized.push(0); // pad with 0
+
+    // --- Unit normalize ---
+    const magnitude = Math.sqrt(normalized.reduce((sum, val) => sum + val * val, 0));
+    const unitNormalized = magnitude === 0 ? normalized : normalized.map(val => val / magnitude);
+
+    console.log('Generated embedding array length (normalized & unit):', unitNormalized.length);
+    return unitNormalized;
+
   } catch (error) {
     console.error('Error generating embedding:', error);
-    return []; // fallback as empty array
+    return new Array(targetLength).fill(0); // fallback
   }
 };
+
 
 /** Save registration */
 const handleSave = async () => {

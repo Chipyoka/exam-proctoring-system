@@ -161,6 +161,7 @@ const ViewLiveAlerts = () => {
           );
           
           setAlerts(newAlerts);
+          console.log('Live alerts updated:', newAlerts);
           setLoading(false);
         } catch (err) {
           console.error('Error processing alerts:', err);

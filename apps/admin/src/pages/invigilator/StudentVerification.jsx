@@ -209,19 +209,37 @@ const StudentVerification = () => {
   };
 
   /** Log verification attempt */
-  const logVerification = async ({ studentId, scannedBy, result }) => {
-    try {
-      await addDoc(collection(firestore, 'logs'), {
-        studentId,
-        scannedBy,
-        result,
-        sessionId,
-        timestamp: new Date(),
-      });
-    } catch (err) {
-      console.error('Error logging verification:', err);
-    }
+const logVerification = async ({ studentId, scannedBy, result }) => {
+  const record = {
+    studentId,
+    scannedBy,
+    result,
+    sessionId,
+    timestamp: new Date(),
   };
+
+  try {
+    if (navigator.onLine) {
+      await addDoc(collection(firestore, 'logs'), record);
+    } else {
+      // Store offline for later sync
+      const db = await initDB();
+      const key = `${studentId}_${Date.now()}`; // unique key
+      await db.put('stagedData', record, key);
+      console.log('Verification attempt stored offline:', record);
+    }
+  } catch (err) {
+    console.error('Error logging verification:', err);
+  }
+};
+const isStudentAlreadyVerified = async (studentId) => {
+  const db = await initDB();
+  const allRecords = await db.getAll('stagedData');
+  // Check if a success record exists for this student in stagedData
+  const offlineSuccess = allRecords.some(r => r.studentId === studentId && r.result === 'success');
+  return offlineSuccess;
+};
+
 
   /** Show popup for success or failure */
   const showVerificationPopup = (type, student = null, message = null) => {
@@ -359,11 +377,12 @@ const StudentVerification = () => {
       return;
     }
 
-    // ✅ Check if student is already verified
-    if (student.isVerified) {
+    const alreadyVerifiedOffline = await isStudentAlreadyVerified(student.id);
+
+    if (student.isVerified || alreadyVerifiedOffline) {
       pushMessage(`Student ${student.id} is already verified`);
-      showVerificationPopup('info', student, 'Student is already verified - no action needed');
-      return;
+      showVerificationPopup('info', student, 'Student has already been verified - no action needed');
+      return; // do not log
     }
 
     // Try face detection again with specific student
@@ -395,10 +414,12 @@ const StudentVerification = () => {
       return;
     }
 
+    console.log("captured embedding:", embedding.slice(0, 60));
     const score = compareEmbeddings(embedding.slice(0, 60), student.embedding);
     const scannedBy = auth.currentUser?.uid;
+    console.log("Manual ID match score:", score);
 
-    if (score >= 0.45) {
+    if (score >= 0.30) {
       await updateDoc(doc(firestore, 'students', student.id), { isVerified: true });
       await logVerification({ studentId: student.id, scannedBy, result: 'success' });
       showVerificationPopup('success', student);
@@ -432,27 +453,35 @@ const StudentVerification = () => {
       if (!student.embedding || !Array.isArray(student.embedding)) return;
       const score = compareEmbeddings(embedding.slice(0, 60), student.embedding);
       if (score > bestMatch.score) bestMatch = { score, student };
+      console.log(`Compared with ${student.id}, score: ${score.toFixed(3)}`);
     });
 
     const scannedBy = auth.currentUser?.uid;
 
     // Step 3: Handle verification result
-    if (bestMatch.score >= 0.45) {
-      // ✅ Check if student is already verified
-      if (bestMatch.student.isVerified) {
-        pushMessage(`Student ${bestMatch.student.id} is already verified`);
-        showVerificationPopup('info', bestMatch.student, 'Student is already verified - no action needed');
-        return; // Don't log or update - just show info
-      }
+    if (bestMatch.score >= 0.30) {
+        const alreadyVerifiedOffline = await isStudentAlreadyVerified(bestMatch.student.id);
 
-      // Student is not verified yet - proceed with verification
-      await updateDoc(doc(firestore, 'students', bestMatch.student.id), { 
-        isVerified: true,
-        lastVerifiedAt: new Date(),
-        verifiedBy: scannedBy
-      });
-      await logVerification({ studentId: bestMatch.student.id, scannedBy, result: 'success' });
-      showVerificationPopup('success', bestMatch.student);
+        if (bestMatch.student.isVerified || alreadyVerifiedOffline) {
+          // Blue popup: already verified, do NOT log as success
+          pushMessage(`Student ${bestMatch.student.id} is already verified`);
+          showVerificationPopup('info', bestMatch.student, 'Student has already been verified - no action needed');
+          return; // exit early, do NOT update Firestore or log as success
+        }
+
+        // First-time verification
+        const scannedBy = auth.currentUser?.uid;
+        await updateDoc(doc(firestore, 'students', bestMatch.student.id), { 
+          isVerified: true,
+          lastVerifiedAt: new Date(),
+          verifiedBy: scannedBy
+        });
+
+        // Log verification (online or offline)
+        await logVerification({ studentId: bestMatch.student.id, scannedBy, result: 'success' });
+
+        showVerificationPopup('success', bestMatch.student);
+
     } else {
       pushMessage(`Best match score too low: ${bestMatch.score.toFixed(3)}`);
       // Face detection succeeded but no good match - offer manual ID

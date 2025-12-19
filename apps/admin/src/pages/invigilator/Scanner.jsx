@@ -135,7 +135,7 @@ const Scanner = () => {
             </button>
         </div>
 
-      <div className="bg-white shadow-md py-6 px-4 w-full w-full text-center">
+      <div className="bg-white shadow-md py-6 px-4 w-full text-center">
       <h2 className="text-2xl font-semibold text-primary">
         Assigned Rooms
       </h2>
