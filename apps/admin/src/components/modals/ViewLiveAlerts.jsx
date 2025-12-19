@@ -257,6 +257,7 @@ const ViewLiveAlerts = () => {
             <p className="px-4 py-2 w-full flex justify-between items-center my-1 bg-gray-100 capitalize text-xs font-medium sticky top-0">
             <span className="w-2/5">Timestamp</span>
             <span className="w-2/5">Room</span>
+            <span className="w-2/5">Reason</span>
             <span className="w-1/5">Result</span>
             </p>
             
@@ -304,7 +305,7 @@ const ViewLiveAlerts = () => {
                 <span className="w-2/5 truncate capitalize" title={alert.roomName}>
                 {alert.roomName}
                 </span>
-                <span className="w-2/5 truncate capitalize" title={alert.roomName}>
+                <span className="w-2/5 truncate capitalize" title={alert.reason}>
                 {alert.reason}
                 </span>
                 
