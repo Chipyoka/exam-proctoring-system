@@ -213,11 +213,12 @@ const StudentVerification = () => {
   };
 
   /** Log verification attempt */
-const logVerification = async ({ studentId, scannedBy, result }) => {
+const logVerification = async ({ studentId, scannedBy, result, reason }) => {
   const record = {
     studentId,
     scannedBy,
     result,
+    reason,
     sessionId,
     timestamp: new Date(),
   };
@@ -375,6 +376,7 @@ const isStudentAlreadyVerified = async (studentId) => {
       await logVerification({ 
         studentId: inputId, 
         scannedBy: auth.currentUser.uid, 
+        reason: 'Student not registered',
         result: 'failure' 
       });
       showVerificationPopup('failure', null, 'Student not registered for this academic period');
@@ -399,7 +401,8 @@ const isStudentAlreadyVerified = async (studentId) => {
       await logVerification({ 
         studentId: inputId, 
         scannedBy: auth.currentUser.uid, 
-        result: 'failure' 
+        result: 'failure',
+        reason: 'Face detection failed after manual ID'
       });
       showVerificationPopup('failure');
       return;
@@ -412,6 +415,7 @@ const isStudentAlreadyVerified = async (studentId) => {
       await logVerification({ 
         studentId: inputId, 
         scannedBy: auth.currentUser.uid, 
+        reason: 'Face detection failed after manual ID',
         result: 'failure' 
       });
       showVerificationPopup('failure');
@@ -425,14 +429,20 @@ const isStudentAlreadyVerified = async (studentId) => {
 
     if (score >= 0.30) {
       await updateDoc(doc(firestore, 'students', student.id), { isVerified: true });
-      await logVerification({ studentId: student.id, scannedBy, result: 'success' });
+      await logVerification({ 
+        studentId: student.id, 
+        scannedBy, 
+        reason: 'Face match successful',
+        result: 'success' 
+      });
       showVerificationPopup('success', student);
     } else {
-      pushMessage(`Face match score too low: ${score.toFixed(3)}`);
+      pushMessage(`Face match score too low`);
       // LOG FAILURE - face doesn't match manual ID
       await logVerification({ 
         studentId: inputId, 
         scannedBy: auth.currentUser.uid, 
+        reason: 'Face did not match registered student',
         result: 'failure' 
       });
       showVerificationPopup('failure');
@@ -482,12 +492,17 @@ const isStudentAlreadyVerified = async (studentId) => {
         });
 
         // Log verification (online or offline)
-        await logVerification({ studentId: bestMatch.student.id, scannedBy, result: 'success' });
+        await logVerification({ 
+          studentId: bestMatch.student.id, 
+          scannedBy, 
+          reason: 'Face match successful',
+          result: 'success' 
+        });
 
         showVerificationPopup('success', bestMatch.student);
 
     } else {
-      pushMessage(`Best match score too low: ${bestMatch.score.toFixed(3)}`);
+      pushMessage(`Best match score too low`);
       // Face detection succeeded but no good match - offer manual ID
       await handleManualIdFallback();
     }

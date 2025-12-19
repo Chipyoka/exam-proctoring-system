@@ -112,6 +112,7 @@ const ViewLiveAlerts = () => {
     const baseAlert = {
       id: doc.id,
       result: logData.result,
+      reason: logData.reason || '-',
       studentId: logData.studentId,
       scannedBy: logData.scannedBy,
       sessionId: logData.sessionId,
@@ -302,6 +303,9 @@ const ViewLiveAlerts = () => {
                 
                 <span className="w-2/5 truncate capitalize" title={alert.roomName}>
                 {alert.roomName}
+                </span>
+                <span className="w-2/5 truncate capitalize" title={alert.roomName}>
+                {alert.reason}
                 </span>
                 
                 <span className={`w-1/5 font-medium capitalize flex items-center gap-1 ${
