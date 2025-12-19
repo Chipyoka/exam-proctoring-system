@@ -8,6 +8,7 @@ import AssignInvigilator from './modals/AssignInvigilator';
 import UnassignInvigilator from './modals/UnassignInvigilator';
 
 import { Search, PlusCircle, MinusCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const InvigilatorsView = () => {
   const [invigilators, setInvigilators] = useState([]);
@@ -86,7 +87,8 @@ const InvigilatorsView = () => {
         throw new Error(`Failed to set role (${newRole}).`);
       }
 
-      alert(`User has been successfully updated to role: ${newRole}.`);
+      // alert(`User has been successfully updated to role: ${newRole}.`);
+      toast.success(`User role updated to: ${newRole}.`);
       setRoles(prev => ({ ...prev, [uid]: newRole }));
     } catch (err) {
       console.error('Error assigning role:', err);
@@ -117,7 +119,8 @@ const InvigilatorsView = () => {
         )
       );
 
-      alert(`Invigilator has been ${isActivated ? 'blocked' : 'activated'}.`);
+      // alert(`Invigilator has been ${isActivated ? 'blocked' : 'activated'}.`);
+      toast.success(`Invigilator ${isActivated ? 'blocked' : 'activated'} successfully.`);
     } catch (err) {
       console.error('Error updating activation:', err);
       alert('Failed to update activation status.');

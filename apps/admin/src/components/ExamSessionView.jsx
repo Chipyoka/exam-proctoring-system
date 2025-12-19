@@ -433,12 +433,12 @@ const ExamSessionView = () => {
 
         {/* Students Section */}
             <div>
-                <p className="text-sm my-2">List of scanned students <span>({sessionData?.students?.length || 0})</span></p>
+                <p className="text-sm my-2">List of students <span>({sessionData?.students?.length || 0})</span></p>
             </div>
     
             {/* Student list */}
             <div className="mb-4">
-                <div className="flex justify-start items-center gap-4">
+                <div className="flex flex-wrap justify-start items-center gap-4">
                 {sessionData?.students?.map(student => (
                   <StudentCard key={student.id} student={student}/>                   
                 ))}

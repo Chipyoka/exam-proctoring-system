@@ -18,12 +18,12 @@ const presetConfig = {
   sslVerify: true,
 };
 
-// === Predefined student data ===
+// === Predefined student data as a list of eligible students  from SMS===
 const students = [
   {
     id: '111111',
-    firstname: 'Test',
-    lastname: 'Valid',
+    firstname: 'Dalitso',
+    lastname: 'Phiri',
     program: 'BBA',
     studyYear: 3,
     phone: '+263771234567',
@@ -92,7 +92,6 @@ app.get('/student', (req, res) => {
 
 // === Start server ===
 app.listen(PORT, () => {
-  console.log(`SMS test server running at http://localhost:${PORT}`);
-  console.log(`Health check: GET http://localhost:${PORT}/`);
-  console.log(`Student lookup: GET http://localhost:${PORT}/student?studentId=111111`);
+  console.log(`✅ SMS MOCK SERVER RUNNING SUCCESSFULLY`);
+  console.log(`✅ http://localhost:${PORT}`);
 });

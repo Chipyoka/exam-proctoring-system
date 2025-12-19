@@ -6,6 +6,7 @@ import { auth, firestore } from '../../../../shared/firebase';
 
 import { UserCircle, Lock, Phone, GraduationCap } from 'lucide-react';
 import Logo from '../assets/eps-white.png';
+import toast from 'react-hot-toast';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -101,6 +102,7 @@ const Signup = () => {
 
       // 🔹 Step 5: Success message and redirect
       setMessage({ type: 'success', text: 'Signup successful! Redirecting to login...' });
+      toast.success('Signup successful! You can now log in.');
       setTimeout(() => navigate('/login'), 2500);
 
     } catch (error) {

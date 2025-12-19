@@ -55,5 +55,6 @@ app.get('/user-role/:uid', async (req, res) => {
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
-  console.log(`🚀 Role management server running on http://localhost:${PORT}`);
+  console.log(`🚀 NODE ROLE MANAGEMENT SERVER`);
+  console.log(`✅ Running on http://localhost:${PORT}`);
 });
