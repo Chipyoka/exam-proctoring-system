@@ -7,7 +7,7 @@ import ExamSessionView from '../components/ExamSessionView';
 
 const Dashboard = () => {
 
-
+window.document.title = "EPS - Admin Dashboard";
 
 
   return (

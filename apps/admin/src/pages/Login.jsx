@@ -65,11 +65,11 @@ const handleLogin = async (e) => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // 👇 Fetch custom claims
+    //  Fetch custom claims
     const idTokenResult = await getIdTokenResult(user);
     const role = idTokenResult.claims.role;
 
-    // 👇 Check if role matches the app
+    //  Check if role matches the app
 
     if (role !== 'admin'){
       navigate("/admin/unauthorised");
@@ -87,7 +87,7 @@ const handleLogin = async (e) => {
   }
 };
 
- document.title = "EPS - Exam Proctoring System";
+ document.title = "EPS - Admin Dashboard";
 
 
   return (

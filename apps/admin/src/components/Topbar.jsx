@@ -40,7 +40,7 @@ const Topbar = () => {
 
  function getFirebaseEmail() {
   try {
-    const raw = localStorage.getItem('auth-storage'); // adjust key
+    const raw = localStorage.getItem('admin-auth-storage'); // adjust key
     if (!raw) return null;
 
     const parsed = JSON.parse(raw);

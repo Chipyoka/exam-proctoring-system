@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { auth } from "../../../../../shared/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import useAuthStore from "../../store/authStore";
+import useAuthStore from "../../store/authInviStore";
 import { useNavigate } from 'react-router-dom';
 import Logo from '../../assets/eps-white.png'; 
 import { LogOut} from 'lucide-react';
@@ -9,7 +9,7 @@ import { LogOut} from 'lucide-react';
 import Rooms from '../../components/invigilator/Rooms';
 
 const Scanner = () => {
-  const { user, inviLogout } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const [myUid, setMyUid] = useState(null);
   const [userRole, setUserRole] = useState("-");
   const [userEmail, setUserEmail] = useState("-");
@@ -18,6 +18,7 @@ const Scanner = () => {
   const [sessionExpired, setSessionExpired] = useState(false);
 
     const navigate = useNavigate();
+      window.document.title = "EPS - Invigilator Dashboard";
 
   useEffect(() => {
     // Listen for auth state changes (login/logout/session expiry)
@@ -27,9 +28,10 @@ const Scanner = () => {
         setUserEmail("-");
         setUserRole("-");
         setLoading(false);
-        inviLogout(); // Zustand logout
+        logout(); // Zustand logout
         return;
       }
+      console.log("Firebase User:", firebaseUser);
 
       setUserEmail(firebaseUser.email);
         setMyUid(firebaseUser.uid);
@@ -75,7 +77,7 @@ const Scanner = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      inviLogout(); // Zustand logout
+      logout(); // Zustand logout
     } catch (err) {
       console.error("Logout failed:", err);
       setError("Logout failed. Try again.");

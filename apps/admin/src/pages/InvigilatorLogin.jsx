@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import {useState, useEffect} from 'react';
-import useAuthStore from '../store/authStore';
+import useAuthStore from '../store/authInviStore';
 
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { getIdTokenResult } from 'firebase/auth';
@@ -14,7 +14,7 @@ import { Lock } from 'lucide-react';
 
 import Logo from '../assets/eps-white.png'; 
 const Login = () => {
-  const login = useAuthStore((state) => state.inviLogin);
+  const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
 
 const [email, setEmail] = useState('');

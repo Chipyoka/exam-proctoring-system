@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { auth, firestore } from "../../../../../shared/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
-import useAuthStore from "../../store/authStore";
+import useAuthStore from "../../store/authInviStore";
 
 import { useNavigate } from 'react-router-dom';
 
@@ -10,7 +10,7 @@ import Logo from '../../assets/eps-white.png';
 import { LogOut } from 'lucide-react';
 
 const ScannerHome = () => {
-  const { inviLogout } = useAuthStore();
+  const { logout } = useAuthStore();
   const [userName, setUserName] = useState("-");
   const [userRole, setUserRole] = useState("-");
   const [isActivated, setIsActivated] = useState(false);
@@ -20,18 +20,20 @@ const ScannerHome = () => {
   const [sessionExpired, setSessionExpired] = useState(false);
   const [loading, setLoading] = useState(true);
 
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-  // 🔹 Listen for auth session
+  window.document.title = "EPS - Invigilator Dashboard";
+  // Listen for auth session
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (!firebaseUser) {
         setSessionExpired(true);
         setUserName("-");
         setUserRole("-");
-        inviLogout();
+        logout();
         return;
       }
+      console.log("Firebase User:", firebaseUser);
 
       setUserName(firebaseUser.displayName);
       await Promise.all([fetchUserRole(firebaseUser), fetchInvigilatorData(firebaseUser.uid)]);
@@ -40,7 +42,7 @@ const ScannerHome = () => {
     return () => unsubscribe();
   }, []);
 
-  // 🔹 Fetch role from backend
+  //  Fetch role from backend
   const fetchUserRole = async (firebaseUser) => {
     try {
       const token = await firebaseUser.getIdToken();
@@ -63,7 +65,7 @@ const ScannerHome = () => {
     }
   };
 
-  // 🔹 Fetch invigilator info from Firestore
+  //  Fetch invigilator info from Firestore
   const fetchInvigilatorData = async (uid) => {
     try {
       const ref = doc(firestore, "invigilators", uid);
@@ -85,7 +87,7 @@ const ScannerHome = () => {
     }
   };
 
-  // 🔹 Fetch the current academic period
+  //  Fetch the current academic period
   const fetchCurrentAcademicPeriod = async () => {
     try {
       const q = query(collection(firestore, "academicPeriod"), where("status", "==", "active"));
@@ -107,11 +109,11 @@ const ScannerHome = () => {
     }
   };
 
-  // 🔹 Handle logout
+  //  Handle logout
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      inviLogout();
+      logout();
     } catch (err) {
       console.error("Logout failed:", err);
       setError("Logout failed. Try again.");

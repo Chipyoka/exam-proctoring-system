@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import useScannerStore from "../../store/useScannerStore";
-import useAuthStore from "../../store/authStore";
+import useAuthStore from "../../store/authInviStore";
 import { useNavigate } from 'react-router-dom';
 
 import { auth, firestore } from "../../../../../shared/firebase";
@@ -14,7 +14,7 @@ import { LogOut} from 'lucide-react';
 
 const StudentVerification = () => {
   const sessionId = useScannerStore((state) => state.selectedExamSessionId);
-  const { inviLogout, inviUser } = useAuthStore();
+  const { logout, inviUser } = useAuthStore();
   const navigate = useNavigate();
 
   const messagesEndRef = useRef(null);
@@ -37,7 +37,7 @@ const StudentVerification = () => {
   const [availableDevices, setAvailableDevices] = useState([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState('');
 
-  document.title = "EPS - Student Verification";
+  document.title = "EPS - Invigilator Student Verification";
 
   /** IndexedDB setup */
   const initDB = async () => openDB('studentVerification', 1, {
