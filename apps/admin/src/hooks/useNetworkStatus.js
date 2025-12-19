@@ -5,11 +5,11 @@ import { firestore } from '../../../../shared/firebase';
 
 const PING_DOC_PATH = 'academicPeriod/jan-25';
 const SLOW_THRESHOLD_MS = 1500;   // >1.5s considered slow
-const SLOW_CHECK_INTERVAL_MS = 1000; // slow network checks every 1s
+const SLOW_CHECK_INTERVAL_MS = 3000; // slow network checks every 3s
 const SYNC_INTERVAL_MS = 30000;  // cloud sync confirmation every 30s
 const CONNECTION_LOST_THRESHOLD_MS = 5000; 
 const RECONNECT_TIMEOUT_MS = 3000; 
-const MAX_CONSECUTIVE_FAILURES = 3; // offline after 3 failed pings
+const MAX_CONSECUTIVE_FAILURES = 5; // offline after 3 failed pings
 const CLOUD_SYNC_THROTTLE_MS = 10000; // min 10s between cloud sync toasts
 
 export const useNetworkStatus = () => {

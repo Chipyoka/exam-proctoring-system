@@ -158,12 +158,13 @@ const handleLookup = async () => {
 
       {studentData && (
         <div className="mt-6 p-4 border border-gray-300 rounded bg-gray-50">
+          <p className="text-lg mb-2 text-green-400 font-bold">Student is Eligible</p>
           <p><strong>ID:</strong> {studentData.id}</p>
           <p><strong>First Name:</strong> {studentData.firstName}</p>
           <p><strong>Last Name:</strong> {studentData.lastName}</p>
           <p><strong>Program:</strong> {studentData.program}</p>
           <p><strong>Year of Study:</strong> {studentData.studyYear}</p>
-          <p><strong>Phone:</strong> {studentData.phone}</p>
+          {/* <p><strong>Phone:</strong> {studentData.phone}</p> */}
         </div>
       )}
     </div>

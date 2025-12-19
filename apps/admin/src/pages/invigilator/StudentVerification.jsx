@@ -8,6 +8,7 @@ import { doc, getDoc, collection, query, where, getDocs, addDoc, updateDoc } fro
 
 import Human from '@vladmandic/human'; 
 import { openDB } from 'idb';
+import toast from 'react-hot-toast';
 
 import Logo from '../../assets/eps-white.png'; 
 import { LogOut} from 'lucide-react';
@@ -180,15 +181,18 @@ const StudentVerification = () => {
         await db.delete('stagedData', key);
         syncedCount++;
         setSyncProgress(Math.round((syncedCount / allKeys.length) * 100));
+       
       } catch (err) {
         console.error("Sync failed for record:", key, err);
       }
     }
 
+
     setTimeout(() => {
       setSyncing(false);
       setSyncProgress(0);
       pushMessage(`Synced ${syncedCount} verification logs.`);
+       toast.success(`Cloud Synced`);
     }, 800);
   };
 
