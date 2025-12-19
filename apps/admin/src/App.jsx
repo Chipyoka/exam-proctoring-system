@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route,  Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import InviProtectedRoute from './components/InviProtectedRoute';
+import NetworkStatusNotifier from './components/NetworkStatusNotifier';
 
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
@@ -22,37 +23,42 @@ import './styles/loader.css'; // Ensure styles are imported
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Public Route */}
-        <Route path="/login" element={<InvigilatorLogin />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/admin/login" element={<Login />} />
-        <Route path="/registration" element={<StudentRegistration />} />
+    <>
+      {/* Network Status Notifier */}
+       <NetworkStatusNotifier />
 
-        {/* Not found URLs - 404 */}
-        <Route path="/*" element={<NotFound />} />
+      <Router>
+        <Routes>
+          {/* Public Route */}
+          <Route path="/login" element={<InvigilatorLogin />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/admin/login" element={<Login />} />
+          <Route path="/registration" element={<StudentRegistration />} />
 
-         <Route path="/invigilator/unauthorised" element={<NotAuthorised />} />
-         <Route path="/admin/unauthorised" element={<NotAuthorised />} />
+          {/* Not found URLs - 404 */}
+          <Route path="/*" element={<NotFound />} />
 
-        <Route path="/" element={<Home />} />
-        
-        {/* Protected Routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/admin/dashboard" element={<Dashboard />} />
-          <Route path="/admin/dashboard/students" element={<Students />} />
-          <Route path="/admin/dashboard/invigilators" element={<Invigilators />} />
-        </Route>
+          <Route path="/invigilator/unauthorised" element={<NotAuthorised />} />
+          <Route path="/admin/unauthorised" element={<NotAuthorised />} />
 
-        {/* invigilator protected routes */}
-        <Route element={<InviProtectedRoute />}>
-          <Route path="/invigilator/scanner" element={<Scanner />} />
-          <Route path="/invigilator/home" element={<ScannerHome />} />
-          <Route path="/invigilator/verification" element={<StudentVerification />} />
-        </Route>
-      </Routes>
-    </Router>
+          <Route path="/" element={<Home />} />
+          
+          {/* Protected Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/admin/dashboard" element={<Dashboard />} />
+            <Route path="/admin/dashboard/students" element={<Students />} />
+            <Route path="/admin/dashboard/invigilators" element={<Invigilators />} />
+          </Route>
+
+          {/* invigilator protected routes */}
+          <Route element={<InviProtectedRoute />}>
+            <Route path="/invigilator/scanner" element={<Scanner />} />
+            <Route path="/invigilator/home" element={<ScannerHome />} />
+            <Route path="/invigilator/verification" element={<StudentVerification />} />
+          </Route>
+        </Routes>
+      </Router>
+    </>
   );
 }
 
